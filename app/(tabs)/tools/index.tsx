@@ -471,8 +471,8 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
 
 const adminStyles = StyleSheet.create({
   card: {
-    borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 2,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
+    borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 2,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
   },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -640,7 +640,10 @@ export default function ToolsScreen() {
       >
         <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
           <View>
-            <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>TOOLS</Text>
+            <View style={styles.headerTitleRow}>
+              <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>TOOLS</Text>
+              <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
+            </View>
             <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>Settings & Utilities</Text>
           </View>
           <View style={styles.pageHeaderRight}>
@@ -812,8 +815,8 @@ export default function ToolsScreen() {
 
 const timerStyles = StyleSheet.create({
   bar: {
-    borderRadius: 14, borderWidth: 1, padding: 12, marginBottom: 2,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
+    borderRadius: 18, borderWidth: 1, padding: 14, marginBottom: 2,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 5,
   },
   topRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   time: { fontSize: 20, fontWeight: "900" as const, letterSpacing: 1, minWidth: 62 },
@@ -842,7 +845,9 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 100 },
   pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1 },
   pageHeaderRight: { alignItems: "flex-end", gap: 4 },
-  brandText: { fontSize: 22, fontWeight: "900" as const, letterSpacing: 4 },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
+  brandText: { fontSize: 24, fontWeight: "900" as const, letterSpacing: 5 },
   brandSub: { fontSize: 9, letterSpacing: 1, marginTop: 2 },
   headerLogo: {
     width: 28, height: 28,
@@ -855,8 +860,8 @@ const styles = StyleSheet.create({
   adminBadgeText: { fontSize: 8, fontWeight: "800" as const, letterSpacing: 1.2 },
   sectionGap: { height: 20 },
   card: {
-    borderRadius: 16, borderWidth: 1, overflow: "hidden", marginBottom: 2,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
+    borderRadius: 20, borderWidth: 1, overflow: "hidden", marginBottom: 2,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 6,
   },
   settingRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12, gap: 10 },
   settingIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
@@ -881,9 +886,9 @@ const styles = StyleSheet.create({
   quickGrid: { flexDirection: "row", gap: 10 },
   quickCardWrap: { flex: 1 },
   quickCard: {
-    borderRadius: 14, borderWidth: 1, padding: 12, aspectRatio: 1,
+    borderRadius: 18, borderWidth: 1, padding: 14, aspectRatio: 1,
     alignItems: "center", justifyContent: "center",
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 5,
   },
   quickIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 5 },
   quickTitle: { fontSize: 11, marginBottom: 1, textAlign: "center", fontWeight: "700" as const },

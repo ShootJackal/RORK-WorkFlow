@@ -41,6 +41,23 @@ const BOOT_MESSAGES_POOL = [
   "Teaching rigs to smile for the camera...",
   "Optimizing snack break algorithms...",
   "Bribing the Wi-Fi gods...",
+  "Counting pixels for quality assurance...",
+  "Whispering sweet nothings to the server...",
+  "Downloading more RAM... just kidding...",
+  "Turning coffee into collection data...",
+  "Polishing the dashboard to a mirror shine...",
+  "Consulting the rig whisperer...",
+  "Negotiating with the API fairy...",
+  "Loading dad jokes for morale boost...",
+  "Spinning up the hamster wheels...",
+  "Deploying tactical vibes...",
+  "Charging the flux capacitor...",
+  "Stretching the bandwidth...",
+  "Feeding the data gnomes...",
+  "Aligning the stars for perfect runs...",
+  "Sharpening the collection algorithms...",
+  "Giving the servers a pep talk...",
+  "Adjusting the vibe frequency...",
 ];
 
 function pickRandomMessages(count: number): string[] {
@@ -128,21 +145,23 @@ function BootSequence({ onComplete }: { onComplete: () => void }) {
   }, [phase, enterScale, enterGlow, progressAnim]);
 
   const handleEnter = useCallback(() => {
-    Animated.timing(fadeOut, { toValue: 0, duration: 350, useNativeDriver: true }).start(() => {
+    Animated.timing(fadeOut, { toValue: 0, duration: 500, useNativeDriver: true }).start(() => {
       onComplete();
     });
   }, [fadeOut, onComplete]);
 
-  const bgColor = isDark ? '#0C0C0E' : '#FAF8F3';
+  const bgColor = isDark ? '#0C0C0E' : '#F8F6FB';
   const accentColor = colors.accent;
   const dimColor = colors.terminalDim;
 
   return (
     <Animated.View style={[bootStyles.container, { backgroundColor: bgColor, opacity: fadeOut }]}>
+      <View style={[bootStyles.glowOrb, { backgroundColor: accentColor, opacity: 0.04 }]} />
       <Animated.View style={[bootStyles.logoWrap, { opacity: logoOpacity }]}>
         <Text style={[bootStyles.logoText, { color: accentColor, fontFamily: FONT_MONO }]}>
           TASKFLOW
         </Text>
+        <View style={[bootStyles.logoAccent, { backgroundColor: accentColor }]} />
         <Text style={[bootStyles.logoSub, { color: dimColor, fontFamily: FONT_MONO }]}>
           COLLECTION SYSTEM
         </Text>
@@ -212,9 +231,17 @@ const bootStyles = StyleSheet.create({
     justifyContent: "center",
     zIndex: 999,
   },
+  glowOrb: {
+    position: "absolute",
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    top: "15%",
+  },
   logoWrap: { alignItems: "center", marginBottom: 48 },
   logoText: { fontSize: 36, fontWeight: "900" as const, letterSpacing: 8 },
-  logoSub: { fontSize: 9, letterSpacing: 4, marginTop: 8 },
+  logoAccent: { width: 40, height: 3, borderRadius: 2, marginTop: 10, opacity: 0.6 },
+  logoSub: { fontSize: 9, letterSpacing: 4, marginTop: 10 },
   terminalArea: {
     width: Dimensions.get("window").width * 0.85,
     maxWidth: 380,

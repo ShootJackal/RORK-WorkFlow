@@ -220,10 +220,10 @@ export default function DashboardScreen() {
 
   const cardShadow = {
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 6,
   };
 
   return (
@@ -243,9 +243,12 @@ export default function DashboardScreen() {
         >
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerLeft}>
-              <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
-                COLLECT
-              </Text>
+              <View style={styles.headerTitleRow}>
+                <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
+                  COLLECT
+                </Text>
+                <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
+              </View>
               <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>
                 {selectedCollector ? `${selectedCollector.name.split(" ")[0]}'s Workspace` : "Task Management"}
               </Text>
@@ -512,6 +515,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerLeft: {},
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
   headerRight: { alignItems: "flex-end", gap: 4 },
   headerLogo: {
     width: 28,
@@ -521,7 +526,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  brandText: { fontSize: 22, fontWeight: "900" as const, letterSpacing: 4 },
+  brandText: { fontSize: 24, fontWeight: "900" as const, letterSpacing: 5 },
   brandSub: { fontSize: 9, letterSpacing: 1, marginTop: 2 },
   rigLabel: { fontSize: 9, letterSpacing: 0.5 },
   openPill: {
@@ -544,7 +549,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   noticeText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  formCard: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1 },
+  formCard: { borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1 },
   formField: { paddingVertical: 2 },
   fieldLabel: { fontSize: 11, fontWeight: "700" as const, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" },
   fieldRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
@@ -566,7 +571,7 @@ const styles = StyleSheet.create({
   hintRow: { flexDirection: "row", alignItems: "flex-start", gap: 5, marginTop: 6 },
   hintText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: "500" as const },
   actionsRow: { flexDirection: "row", gap: 8, marginBottom: 10 },
-  logCard: { borderRadius: 16, padding: 14, marginTop: 10, borderWidth: 1 },
+  logCard: { borderRadius: 20, padding: 16, marginTop: 12, borderWidth: 1 },
   logHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
