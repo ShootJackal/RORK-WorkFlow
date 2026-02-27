@@ -48,12 +48,20 @@ import { router } from "expo-router";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAdminDashboardData, clearAllCaches } from "@/services/googleSheets";
-import { AdminDashboardData, CollectorSummary } from "@/types";
+import { fetchAdminDashboardData, fetchTaskActualsData, clearAllCaches } from "@/services/googleSheets";
+import { AdminDashboardData, CollectorSummary, TaskActualRow } from "@/types";
 import SelectPicker from "@/components/SelectPicker";
 
 const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
+
+const COMPLETED_TASK_STATUSES = new Set(["DONE", "COMPLETED", "COMPLETE", "FINISHED", "CLOSED"]);
+const RECOLLECT_TASK_STATUSES = new Set(["RECOLLECT", "NEEDS_RECOLLECTION", "NEEDS_RECOLLECT", "RECOLLECTION"]);
+const OPEN_TASK_STATUSES = new Set(["IN_PROGRESS", "INPROGRESS", "ACTIVE", "IP", "OPEN", "PARTIAL", "ASSIGNED", "IN_QUEUE"]);
+
+function normalizeTaskStatus(status: string): string {
+  return String(status ?? "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+}
 
 const SHEET_PAGES = [
   { id: "log", label: "Assignment Log", icon: ClipboardList, desc: "View task assignment history" },
@@ -137,21 +145,37 @@ function CompactTimer() {
   }, [running, showPicker, pickerFade]);
 
   useEffect(() => {
-    if (running && secondsLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft(s => {
-          if (s <= 1) {
-            setRunning(false);
-            setFinished(true);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            return 0;
+    if (!running) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
           }
-          return s - 1;
-        });
-      }, 1000);
-    } else if (intervalRef.current) { clearInterval(intervalRef.current); }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [running, secondsLeft]);
+          setRunning(false);
+          setFinished(true);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [running]);
 
   const activeOption = TIMER_OPTIONS.find(p => p.mins === selectedMinutes);
   const ringColor = finished ? colors.cancel : running ? (activeOption?.color ?? colors.accent) : colors.textMuted;
@@ -355,7 +379,44 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
     retry: 1,
   });
 
+  const taskActualsQuery = useQuery<TaskActualRow[]>({
+    queryKey: ["adminTaskActualsOverview"],
+    queryFn: fetchTaskActualsData,
+    enabled: configured,
+    staleTime: 60000,
+    retry: 1,
+  });
+
   const data = adminQuery.data;
+  const taskActuals = useMemo(() => taskActualsQuery.data ?? [], [taskActualsQuery.data]);
+
+  const derivedCounts = useMemo(() => {
+    if (taskActuals.length === 0) return null;
+    let totalTasks = 0;
+    let completedTasks = 0;
+    let recollectTasks = 0;
+    let inProgressTasks = 0;
+
+    for (const task of taskActuals) {
+      totalTasks += 1;
+      const status = normalizeTaskStatus(task.status);
+      const remainingHours = Number(task.remainingHours) || 0;
+
+      if (COMPLETED_TASK_STATUSES.has(status)) {
+        completedTasks += 1;
+        continue;
+      }
+      if (RECOLLECT_TASK_STATUSES.has(status)) {
+        recollectTasks += 1;
+        continue;
+      }
+      if (OPEN_TASK_STATUSES.has(status) || remainingHours > 0) {
+        inProgressTasks += 1;
+      }
+    }
+
+    return { totalTasks, completedTasks, recollectTasks, inProgressTasks };
+  }, [taskActuals]);
 
   if (adminQuery.isLoading) {
     return (
@@ -368,14 +429,19 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
 
   if (!data) return null;
 
+  const totalTasks = derivedCounts?.totalTasks ?? data.totalTasks;
+  const completedTasks = derivedCounts?.completedTasks ?? data.completedTasks;
+  const recollectTasks = derivedCounts?.recollectTasks ?? data.recollectTasks;
+  const inProgressTasks = derivedCounts?.inProgressTasks ?? data.inProgressTasks;
+
   const items = [
-    { label: "Total Tasks", value: String(data.totalTasks), color: colors.textPrimary, icon: <FileText size={14} color={colors.accent} /> },
-    { label: "Completed", value: String(data.completedTasks), color: colors.complete, icon: <Check size={14} color={colors.complete} /> },
-    { label: "In Progress", value: String(data.inProgressTasks), color: colors.accent, icon: <Activity size={14} color={colors.accent} /> },
-    { label: "Recollect", value: String(data.recollectTasks), color: colors.cancel, icon: <AlertTriangle size={14} color={colors.cancel} /> },
+    { label: "Total Tasks", value: String(totalTasks), color: colors.textPrimary, icon: <FileText size={14} color={colors.accent} /> },
+    { label: "Completed", value: String(completedTasks), color: colors.complete, icon: <Check size={14} color={colors.complete} /> },
+    { label: "In Progress", value: String(inProgressTasks), color: colors.accent, icon: <Activity size={14} color={colors.accent} /> },
+    { label: "Recollect", value: String(recollectTasks), color: colors.cancel, icon: <AlertTriangle size={14} color={colors.cancel} /> },
   ];
 
-  const completionRate = data.totalTasks > 0 ? Math.round((data.completedTasks / data.totalTasks) * 100) : 0;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
     <View style={[adminStyles.card, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>
@@ -542,10 +608,20 @@ export default function ToolsScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const adminModalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
   }, [fadeAnim]);
+
+  useEffect(() => {
+    return () => {
+      if (adminModalTimeoutRef.current) {
+        clearTimeout(adminModalTimeoutRef.current);
+        adminModalTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const collectorOptions = useMemo(() => {
     const opts = collectors.map(c => ({ value: c.name, label: c.name }));
@@ -562,9 +638,12 @@ export default function ToolsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (name === "__admin__") {
       if (isAdmin) {
+        Alert.alert("Admin already unlocked", "Admin mode is already active on this device.");
         return;
       }
-      setShowAdminModal(true);
+      // Allow the picker modal to close before opening the password modal.
+      if (adminModalTimeoutRef.current) clearTimeout(adminModalTimeoutRef.current);
+      adminModalTimeoutRef.current = setTimeout(() => setShowAdminModal(true), 220);
       return;
     }
     selectCollector(name);
@@ -715,9 +794,10 @@ export default function ToolsScreen() {
           </TouchableOpacity>
         )}
 
-        <View style={styles.sectionGap} />
-        <SectionHeader label="Collection Timer" icon={<Timer size={11} color={colors.textMuted} />} />
-        <CompactTimer />
+        <View style={styles.hiddenTimer}>
+          <SectionHeader label="Collection Timer" icon={<Timer size={11} color={colors.textMuted} />} />
+          <CompactTimer />
+        </View>
 
         <View style={styles.sectionGap} />
         <View
@@ -730,7 +810,7 @@ export default function ToolsScreen() {
           <View style={styles.themeContent}>
             <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
             <Text style={[styles.themeSub, { color: colors.textMuted }]}>
-              iOS-style toggle for familiar on/off control
+              Switch app appearance
             </Text>
           </View>
           <View style={styles.themeSwitchWrap}>
@@ -867,6 +947,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1,
   },
   adminBadgeText: { fontSize: 8, fontWeight: "800" as const, letterSpacing: 1.2 },
+  hiddenTimer: { display: "none" },
   sectionGap: { height: 20 },
   card: {
     borderRadius: 20, borderWidth: 1, overflow: "hidden", marginBottom: 2,

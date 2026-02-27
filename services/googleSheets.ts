@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Collector, Task, LogEntry, SubmitPayload, SubmitResponse, CollectorStats, TaskActualRow, FullLogEntry, AdminDashboardData, LeaderboardEntry } from "@/types";
 
-const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNTA7pXytO59Zun-U5ZzHqX6YSkyGL_OZ5WtQWq7sUePBl7nWv6M3aYiEitenWXIO9SA/exec";
+const DEFAULT_SCRIPT_URL = "";
 const REQUEST_TIMEOUT_MS = 25000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
@@ -89,10 +89,29 @@ function normalizeScriptUrl(raw: string): string {
   return trimmed;
 }
 
+function isValidScriptUrl(url: string): boolean {
+  if (!url) return false;
+  if (/\[REDACTED\]/i.test(url)) return false;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+  } catch {
+    return false;
+  }
+  return /\/exec$/i.test(url);
+}
+
 function getScriptUrl(): string {
-  const fromEnv = normalizeScriptUrl(process.env.EXPO_PUBLIC_GOOGLE_SCRIPT_URL ?? "");
-  const fallback = normalizeScriptUrl(DEFAULT_SCRIPT_URL);
+  const fromEnvRaw = normalizeScriptUrl(process.env.EXPO_PUBLIC_GOOGLE_SCRIPT_URL ?? "");
+  const fallbackRaw = normalizeScriptUrl(DEFAULT_SCRIPT_URL);
+  const fromEnv = isValidScriptUrl(fromEnvRaw) ? fromEnvRaw : "";
+  const fallback = isValidScriptUrl(fallbackRaw) ? fallbackRaw : "";
   const resolved = fromEnv || fallback;
+
+  if (!resolved && (fromEnvRaw || fallbackRaw)) {
+    console.log("[API] Ignoring invalid script URL config");
+  }
+
   console.log("[API] getScriptUrl resolved:", resolved ? `${resolved.slice(0, 80)}...` : "EMPTY");
   return resolved;
 }
@@ -379,11 +398,11 @@ function sanitizeLeaderboard(raw: LeaderboardEntry[]): LeaderboardEntry[] {
   return entries;
 }
 
-export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  console.log("[API] fetchLeaderboard — using server endpoint");
+export async function fetchLeaderboard(period: "thisWeek" | "lastWeek" = "thisWeek"): Promise<LeaderboardEntry[]> {
+  console.log("[API] fetchLeaderboard — using server endpoint", period);
 
   try {
-    const serverLeaderboard = await apiGet<LeaderboardEntry[]>("getLeaderboard");
+    const serverLeaderboard = await apiGet<LeaderboardEntry[]>("getLeaderboard", { period });
     if (serverLeaderboard && serverLeaderboard.length > 0) {
       console.log("[API] Server leaderboard returned", serverLeaderboard.length, "entries");
       const entries = sanitizeLeaderboard(serverLeaderboard);
@@ -401,11 +420,19 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
   try {
     console.log("[API] Attempting _AppCache fallback for leaderboard");
     const cache = await apiGet<Record<string, { value: unknown; updatedAt: string }>>("getAppCache", {}, false);
-    if (cache && cache.leaderboard) {
-      const cached = cache.leaderboard.value as LeaderboardEntry[];
-      if (Array.isArray(cached) && cached.length > 0) {
-        console.log("[API] _AppCache leaderboard fallback:", cached.length, "entries, updated:", cache.leaderboard.updatedAt);
-        return sanitizeLeaderboard(cached);
+    if (cache) {
+      const periodCacheKeys = period === "lastWeek"
+        ? ["leaderboard_lastWeek", "leaderboardLastWeek", "leaderboard"]
+        : ["leaderboard_thisWeek", "leaderboardThisWeek", "leaderboard"];
+
+      for (const key of periodCacheKeys) {
+        const candidate = cache[key];
+        if (!candidate) continue;
+        const cached = candidate.value as LeaderboardEntry[];
+        if (Array.isArray(cached) && cached.length > 0) {
+          console.log("[API] _AppCache leaderboard fallback:", cached.length, "entries, updated:", candidate.updatedAt, "key:", key);
+          return sanitizeLeaderboard(cached);
+        }
       }
     }
   } catch (err) {

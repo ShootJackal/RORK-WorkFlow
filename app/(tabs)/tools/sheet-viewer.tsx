@@ -23,6 +23,10 @@ function formatTwoDecimals(value: number): string {
   return Number(value || 0).toFixed(2);
 }
 
+function formatCount(value: number): string {
+  return String(Math.max(0, Math.trunc(Number(value) || 0)));
+}
+
 function StatusBadge({ status, colors }: { status: string; colors: any }) {
   const upper = status.toUpperCase();
   const isComplete = upper === "COMPLETED" || upper === "DONE";
@@ -247,10 +251,10 @@ function TaskActualsView({ configured }: { configured: boolean }) {
   return (
     <View style={viewStyles.list}>
       <View style={viewStyles.summaryRow}>
-        <SummaryChip label="Total" value={formatTwoDecimals(tasks.length)} color={colors.textPrimary} bg={colors.bgInput} />
-        <SummaryChip label="Active" value={formatTwoDecimals(grouped.active.length)} color={colors.accent} bg={colors.accentSoft} />
-        <SummaryChip label="Recollect" value={formatTwoDecimals(grouped.recollect.length)} color={colors.cancel} bg={colors.cancelBg} />
-        <SummaryChip label="Done" value={formatTwoDecimals(grouped.done.length)} color={colors.complete} bg={colors.completeBg} />
+        <SummaryChip label="Total" value={formatCount(tasks.length)} color={colors.textPrimary} bg={colors.bgInput} />
+        <SummaryChip label="Active" value={formatCount(grouped.active.length)} color={colors.accent} bg={colors.accentSoft} />
+        <SummaryChip label="Recollect" value={formatCount(grouped.recollect.length)} color={colors.cancel} bg={colors.cancelBg} />
+        <SummaryChip label="Done" value={formatCount(grouped.done.length)} color={colors.complete} bg={colors.completeBg} />
       </View>
       <View style={viewStyles.summaryRow}>
         <SummaryChip label="Collected hrs" value={`${formatTwoDecimals(hourTotals.collected)}h`} color={colors.accent} bg={colors.accentSoft} />
@@ -260,28 +264,28 @@ function TaskActualsView({ configured }: { configured: boolean }) {
 
       {grouped.recollect.length > 0 && (
         <View style={viewStyles.section}>
-          <Text style={[viewStyles.sectionTitle, { color: colors.cancel }]}>RECOLLECT ({formatTwoDecimals(grouped.recollect.length)})</Text>
+          <Text style={[viewStyles.sectionTitle, { color: colors.cancel }]}>RECOLLECT ({formatCount(grouped.recollect.length)})</Text>
           {grouped.recollect.map((t, i) => <TaskRow key={`r_${i}`} task={t} colors={colors} showRecollectTime />)}
         </View>
       )}
 
       {grouped.active.length > 0 && (
         <View style={viewStyles.section}>
-          <Text style={[viewStyles.sectionTitle, { color: colors.accent }]}>IN PROGRESS ({formatTwoDecimals(grouped.active.length)})</Text>
+          <Text style={[viewStyles.sectionTitle, { color: colors.accent }]}>IN PROGRESS ({formatCount(grouped.active.length)})</Text>
           {grouped.active.map((t, i) => <TaskRow key={`a_${i}`} task={t} colors={colors} />)}
         </View>
       )}
 
       {grouped.other.length > 0 && (
         <View style={viewStyles.section}>
-          <Text style={[viewStyles.sectionTitle, { color: colors.textMuted }]}>OTHER ({formatTwoDecimals(grouped.other.length)})</Text>
+          <Text style={[viewStyles.sectionTitle, { color: colors.textMuted }]}>OTHER ({formatCount(grouped.other.length)})</Text>
           {grouped.other.map((t, i) => <TaskRow key={`o_${i}`} task={t} colors={colors} />)}
         </View>
       )}
 
       {grouped.done.length > 0 && (
         <View style={viewStyles.section}>
-          <Text style={[viewStyles.sectionTitle, { color: colors.complete }]}>DONE ({formatTwoDecimals(grouped.done.length)})</Text>
+          <Text style={[viewStyles.sectionTitle, { color: colors.complete }]}>DONE ({formatCount(grouped.done.length)})</Text>
           {grouped.done.map((t, i) => <TaskRow key={`d_${i}`} task={t} colors={colors} />)}
         </View>
       )}

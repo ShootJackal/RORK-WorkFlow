@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { Send, Wrench, BarChart3, Radio } from "lucide-react-native";
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useMemo, useEffect } from "react";
 import { BlurView } from "expo-blur";
 import {
   View,
@@ -9,12 +9,13 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/providers/ThemeProvider";
 import * as Haptics from "expo-haptics";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: FALLBACK_SCREEN_WIDTH } = Dimensions.get("window");
 
 const TAB_ORDER = ["live", "index", "stats", "tools"] as const;
 type TabName = (typeof TAB_ORDER)[number];
@@ -29,16 +30,20 @@ const TAB_CONFIG: Record<TabName, { title: string; icon: (color: string, size: n
 function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const sliderAnim = useRef(new Animated.Value(0)).current;
 
-  const TAB_COUNT = TAB_ORDER.length;
-  const ISLAND_MARGIN = 16;
-  const ISLAND_WIDTH = SCREEN_WIDTH - ISLAND_MARGIN * 2;
-  const TAB_WIDTH = ISLAND_WIDTH / TAB_COUNT;
+  const { TAB_WIDTH } = useMemo(() => {
+    const safeWidth = windowWidth > 0 ? windowWidth : FALLBACK_SCREEN_WIDTH;
+    const TAB_COUNT = TAB_ORDER.length;
+    const ISLAND_MARGIN = 16;
+    const ISLAND_WIDTH = Math.max(280, safeWidth - ISLAND_MARGIN * 2);
+    return { TAB_WIDTH: ISLAND_WIDTH / TAB_COUNT };
+  }, [windowWidth]);
 
   const currentIndex = state.index;
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.spring(sliderAnim, {
       toValue: currentIndex * TAB_WIDTH,
       useNativeDriver: true, speed: 28, bounciness: 5,

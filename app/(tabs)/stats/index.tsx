@@ -18,7 +18,6 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { fetchCollectorStats, fetchLeaderboard, clearApiCache } from "@/services/googleSheets";
 import { CollectorStats, LeaderboardEntry } from "@/types";
 
-const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 function normalizeCollectorName(name: string): string {
@@ -26,6 +25,7 @@ function normalizeCollectorName(name: string): string {
 }
 
 type LeaderboardTab = "combined" | "sf" | "mx";
+type LeaderboardPeriod = "thisWeek" | "lastWeek";
 
 function AnimatedBar({ value, maxValue, color, delay }: { value: number; maxValue: number; color: string; delay: number }) {
   const widthAnim = useRef(new Animated.Value(0)).current;
@@ -188,6 +188,7 @@ export default function StatsScreen() {
   const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured } = useCollection();
   const [refreshing, setRefreshing] = useState(false);
   const [lbTab, setLbTab] = useState<LeaderboardTab>("combined");
+  const [lbPeriod, setLbPeriod] = useState<LeaderboardPeriod>("thisWeek");
   const syncPulse = useRef(new Animated.Value(0)).current;
 
   const normalizedName = useMemo(() => normalizeCollectorName(selectedCollectorName), [selectedCollectorName]);
@@ -202,8 +203,8 @@ export default function StatsScreen() {
   });
 
   const leaderboardQuery = useQuery<LeaderboardEntry[]>({
-    queryKey: ["leaderboard"],
-    queryFn: () => fetchLeaderboard(),
+    queryKey: ["leaderboard", lbPeriod],
+    queryFn: () => fetchLeaderboard(lbPeriod),
     enabled: configured,
     staleTime: 120000,
     retry: 2,
@@ -274,12 +275,20 @@ export default function StatsScreen() {
 
   const stats = statsQuery.data;
   const cardShadow = { shadowColor: isDark ? '#7C3AED' : colors.shadow, shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.15 : 0.1, shadowRadius: 20, elevation: 8 };
+  const refreshControl = Platform.OS === "web"
+    ? undefined
+    : <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />;
 
   const tabItems: { key: LeaderboardTab; label: string; color: string }[] = [
     { key: "combined", label: "All", color: colors.accent },
     { key: "mx", label: "MX", color: colors.mxOrange },
     { key: "sf", label: "SF", color: colors.sfBlue },
   ];
+  const periodItems: { key: LeaderboardPeriod; label: string }[] = [
+    { key: "thisWeek", label: "This Week" },
+    { key: "lastWeek", label: "Last Week" },
+  ];
+  const periodLabel = lbPeriod === "thisWeek" ? "THIS WEEK" : "LAST WEEK";
 
   const currentLbEntries = lbTab === "sf" ? sfEntries : lbTab === "mx" ? mxEntries : leaderboard;
 
@@ -287,7 +296,6 @@ export default function StatsScreen() {
   const hasLeaderboardError = leaderboardQuery.isError && !leaderboardQuery.data && !leaderboardQuery.isLoading;
   const hasStatsError = statsQuery.isError && !statsQuery.data && !statsQuery.isLoading;
   const isStatsLoading = statsQuery.isLoading && !statsQuery.data;
-  const isSyncing = refreshing || statsQuery.isFetching || leaderboardQuery.isFetching;
 
   useEffect(() => {
     const pulse = Animated.loop(
@@ -315,7 +323,7 @@ export default function StatsScreen() {
       style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
       contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]}
       showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={refreshControl}
     >
       <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
         <View>
@@ -328,22 +336,6 @@ export default function StatsScreen() {
           </Text>
         </View>
         <View style={styles.pageHeaderRight}>
-          <View style={[styles.syncBadge, {
-            backgroundColor: isSyncing ? colors.statusPending + "14" : colors.completeBg,
-            borderColor: isSyncing ? colors.statusPending + "3A" : colors.complete + "30",
-          }]}>
-            <Animated.View style={[styles.syncDot, {
-              backgroundColor: isSyncing ? colors.statusPending : colors.complete,
-              opacity: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }),
-              transform: [{ scale: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.3] }) }],
-            }]} />
-            <Text style={[styles.syncText, {
-              color: isSyncing ? colors.statusPending : colors.complete,
-              fontFamily: FONT_MONO,
-            }]}>
-              {isSyncing ? "SYNCING" : "SYNCED"}
-            </Text>
-          </View>
           <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
           {selectedRig !== "" && (
             <Text style={[styles.rigBadge, { color: colors.textMuted }]}>{selectedRig}</Text>
@@ -397,7 +389,25 @@ export default function StatsScreen() {
 
       <View style={[styles.sectionHeader, { marginTop: 24 }]}>
         <Trophy size={12} color={colors.gold} />
-        <Text style={[styles.sectionLabel, { color: colors.gold }]}>LEADERBOARD</Text>
+        <Text style={[styles.sectionLabel, { color: colors.gold }]}>{`LEADERBOARD · ${periodLabel}`}</Text>
+      </View>
+
+      <View style={[styles.periodSwitchRow, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+        {periodItems.map((item) => (
+          <TouchableOpacity
+            key={item.key}
+            style={[styles.periodBtn, lbPeriod === item.key && { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}
+            onPress={() => setLbPeriod(item.key)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.periodBtnText, {
+              color: lbPeriod === item.key ? colors.accent : colors.textMuted,
+              fontWeight: lbPeriod === item.key ? "700" as const : "500" as const,
+            }]}>
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <View style={[styles.lbTabRow, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
@@ -451,13 +461,13 @@ export default function StatsScreen() {
         <View style={[styles.leaderboardCard, { backgroundColor: colors.bgCard, borderColor: colors.border, ...cardShadow }]}>
           <View style={styles.lbHeaderRow}>
             <Text style={[styles.lbHeaderText, { color: colors.textMuted }]}>
-              {lbTab === "sf" ? "San Francisco" : lbTab === "mx" ? "Los Cabos (MX)" : "Combined"} Rankings
+              {`${lbTab === "sf" ? "San Francisco" : lbTab === "mx" ? "Los Cabos (MX)" : "Combined"} Rankings · ${periodLabel}`}
             </Text>
             <Medal size={14} color={colors.gold} />
           </View>
           {currentLbEntries.slice(0, 20).map((entry, idx) => (
             <LeaderboardRow
-              key={`lb_${lbTab}_${idx}`}
+              key={`lb_${lbPeriod}_${lbTab}_${idx}`}
               entry={entry}
               index={idx}
               isCurrentUser={normalizeCollectorName(entry.collectorName).toLowerCase() === normalizedName.toLowerCase()}
@@ -476,7 +486,7 @@ export default function StatsScreen() {
 
       {lbTab === "combined" && recentCompleted.length > 0 && (
         <View style={[styles.recentCard, { backgroundColor: colors.bgCard, borderColor: colors.border, ...cardShadow }]}>
-          <Text style={[styles.recentTitle, { color: colors.textMuted }]}>TOP COLLECTORS</Text>
+          <Text style={[styles.recentTitle, { color: colors.textMuted }]}>{`TOP COLLECTORS · ${periodLabel}`}</Text>
           {recentCompleted.map((item, idx) => {
             const regionColor = item.region === "MX" ? colors.mxOrange : colors.sfBlue;
             return (
@@ -593,17 +603,6 @@ const styles = StyleSheet.create({
     fontWeight: "800" as const,
     letterSpacing: 1.1,
   },
-  syncBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-  },
-  syncDot: { width: 6, height: 6, borderRadius: 3 },
-  syncText: { fontSize: 9, fontWeight: "700" as const, letterSpacing: 1 },
   headerLogo: {
     width: 28, height: 28,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
@@ -628,6 +627,25 @@ const styles = StyleSheet.create({
   weekItem: { flex: 1, alignItems: "center" },
   weekVal: { fontSize: 16, fontWeight: "600" as const },
   weekLbl: { fontSize: 10, marginTop: 3 },
+  periodSwitchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 6,
+    marginBottom: 8,
+  },
+  periodBtn: {
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 7,
+  },
+  periodBtnText: { fontSize: 11, letterSpacing: 0.3 },
   lbTabRow: {
     flexDirection: "row", alignItems: "center", gap: 6,
     borderRadius: 12, borderWidth: 1, padding: 6, marginBottom: 10,
