@@ -48,12 +48,20 @@ import { router } from "expo-router";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAdminDashboardData, clearAllCaches } from "@/services/googleSheets";
-import { AdminDashboardData, CollectorSummary } from "@/types";
+import { fetchAdminDashboardData, fetchTaskActualsData, clearAllCaches } from "@/services/googleSheets";
+import { AdminDashboardData, CollectorSummary, TaskActualRow } from "@/types";
 import SelectPicker from "@/components/SelectPicker";
 
 const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
+
+const COMPLETED_TASK_STATUSES = new Set(["DONE", "COMPLETED", "COMPLETE", "FINISHED", "CLOSED"]);
+const RECOLLECT_TASK_STATUSES = new Set(["RECOLLECT", "NEEDS_RECOLLECTION", "NEEDS_RECOLLECT", "RECOLLECTION"]);
+const OPEN_TASK_STATUSES = new Set(["IN_PROGRESS", "INPROGRESS", "ACTIVE", "IP", "OPEN", "PARTIAL", "ASSIGNED", "IN_QUEUE"]);
+
+function normalizeTaskStatus(status: string): string {
+  return String(status ?? "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+}
 
 const SHEET_PAGES = [
   { id: "log", label: "Assignment Log", icon: ClipboardList, desc: "View task assignment history" },
@@ -355,7 +363,16 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
     retry: 1,
   });
 
+  const taskActualsQuery = useQuery<TaskActualRow[]>({
+    queryKey: ["adminTaskActualsOverview"],
+    queryFn: fetchTaskActualsData,
+    enabled: configured,
+    staleTime: 60000,
+    retry: 1,
+  });
+
   const data = adminQuery.data;
+  const taskActuals = taskActualsQuery.data ?? [];
 
   if (adminQuery.isLoading) {
     return (
@@ -368,14 +385,47 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
 
   if (!data) return null;
 
+  const derivedCounts = useMemo(() => {
+    if (taskActuals.length === 0) return null;
+    let totalTasks = 0;
+    let completedTasks = 0;
+    let recollectTasks = 0;
+    let inProgressTasks = 0;
+
+    for (const task of taskActuals) {
+      totalTasks += 1;
+      const status = normalizeTaskStatus(task.status);
+      const remainingHours = Number(task.remainingHours) || 0;
+
+      if (COMPLETED_TASK_STATUSES.has(status)) {
+        completedTasks += 1;
+        continue;
+      }
+      if (RECOLLECT_TASK_STATUSES.has(status)) {
+        recollectTasks += 1;
+        continue;
+      }
+      if (OPEN_TASK_STATUSES.has(status) || remainingHours > 0) {
+        inProgressTasks += 1;
+      }
+    }
+
+    return { totalTasks, completedTasks, recollectTasks, inProgressTasks };
+  }, [taskActuals]);
+
+  const totalTasks = derivedCounts?.totalTasks ?? data.totalTasks;
+  const completedTasks = derivedCounts?.completedTasks ?? data.completedTasks;
+  const recollectTasks = derivedCounts?.recollectTasks ?? data.recollectTasks;
+  const inProgressTasks = derivedCounts?.inProgressTasks ?? data.inProgressTasks;
+
   const items = [
-    { label: "Total Tasks", value: String(data.totalTasks), color: colors.textPrimary, icon: <FileText size={14} color={colors.accent} /> },
-    { label: "Completed", value: String(data.completedTasks), color: colors.complete, icon: <Check size={14} color={colors.complete} /> },
-    { label: "In Progress", value: String(data.inProgressTasks), color: colors.accent, icon: <Activity size={14} color={colors.accent} /> },
-    { label: "Recollect", value: String(data.recollectTasks), color: colors.cancel, icon: <AlertTriangle size={14} color={colors.cancel} /> },
+    { label: "Total Tasks", value: String(totalTasks), color: colors.textPrimary, icon: <FileText size={14} color={colors.accent} /> },
+    { label: "Completed", value: String(completedTasks), color: colors.complete, icon: <Check size={14} color={colors.complete} /> },
+    { label: "In Progress", value: String(inProgressTasks), color: colors.accent, icon: <Activity size={14} color={colors.accent} /> },
+    { label: "Recollect", value: String(recollectTasks), color: colors.cancel, icon: <AlertTriangle size={14} color={colors.cancel} /> },
   ];
 
-  const completionRate = data.totalTasks > 0 ? Math.round((data.completedTasks / data.totalTasks) * 100) : 0;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
     <View style={[adminStyles.card, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>

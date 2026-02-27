@@ -367,9 +367,17 @@ function handleGetAdminDashboard() {
     var tn = safeStr(taskData[i][1]);
     if (!tn) continue;
     totalTasks++;
-    if (st === 'done' || st === 'completed' || st === 'complete') completedTasks++;
-    else if (st === 'in progress' || st === 'active' || st === 'ip') inProgressTasks++;
-    else if (st === 'recollect' || st === 'needs recollection') { recollectTasks++; recollections.push(tn); }
+    if (st === 'done' || st === 'completed' || st === 'complete') {
+      completedTasks++;
+    } else if (st === 'recollect' || st === 'needs recollection' || st === 'needs_recollection') {
+      recollectTasks++;
+      recollections.push(tn);
+    } else if (
+      st === 'in progress' || st === 'in_progress' || st === 'inprogress' ||
+      st === 'active' || st === 'ip' || st === 'open' || st === 'partial' || st === 'assigned'
+    ) {
+      inProgressTasks++;
+    }
   }
 
   var collectorsData = getSheetData(SHEETS.COLLECTORS);
