@@ -13,7 +13,6 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   UserCheck,
   CheckCircle,
@@ -29,12 +28,14 @@ import {
 import { Image } from "expo-image";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { DesignTokens } from "@/constants/colors";
+import ScreenContainer from "@/components/ScreenContainer";
 import SelectPicker from "@/components/SelectPicker";
 import ActionButton from "@/components/ActionButton";
 
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
-function LogEntryRow({ entry, statusColor, colors, isLast }: {
+const LogEntryRow = React.memo(function LogEntryRow({ entry, statusColor, colors, isLast }: {
   entry: { taskName: string; status: string; loggedHours: number; plannedHours: number; remainingHours: number; notes: string };
   statusColor: string;
   colors: any;
@@ -75,7 +76,7 @@ function LogEntryRow({ entry, statusColor, colors, isLast }: {
       </View>
     </View>
   );
-}
+});
 
 const logStyles = StyleSheet.create({
   row: { paddingVertical: 10 },
@@ -94,7 +95,6 @@ const logStyles = StyleSheet.create({
 
 export default function DashboardScreen() {
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
   const {
     configured,
     collectors,
@@ -228,23 +228,21 @@ export default function DashboardScreen() {
     return colors.accent;
   }, [colors]);
 
-  const cardShadow = {
-    shadowColor: isDark ? '#7C3AED' : colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: isDark ? 0.15 : 0.1,
-    shadowRadius: 20,
-    elevation: 8,
-  };
+  const cardShadow = useMemo(() => ({
+    shadowColor: isDark ? colors.accent : colors.shadow,
+    ...DesignTokens.shadow.elevated,
+  }), [isDark, colors]);
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: colors.bg, paddingTop: insets.top }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Animated.View style={[styles.flex, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.content}
+    <ScreenContainer>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <Animated.View style={[styles.flex, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -507,29 +505,30 @@ export default function DashboardScreen() {
 
           <View style={styles.spacer} />
         </ScrollView>
-      </Animated.View>
-    </KeyboardAvoidingView>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 140 },
+  content: { padding: DesignTokens.spacing.xl, paddingBottom: 140 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 20,
+    marginBottom: DesignTokens.spacing.xl,
     paddingBottom: 14,
     borderBottomWidth: 1,
   },
-  headerLeft: { gap: 3 },
+  headerLeft: { gap: DesignTokens.spacing.xs },
   headerTag: {
     alignSelf: "flex-start",
-    borderRadius: 7,
+    borderRadius: DesignTokens.radius.xs,
     borderWidth: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: DesignTokens.spacing.sm,
     paddingVertical: 3,
     marginBottom: 2,
   },
@@ -538,15 +537,12 @@ const styles = StyleSheet.create({
     fontWeight: "800" as const,
     letterSpacing: 1.1,
   },
-  headerRight: { alignItems: "flex-end", gap: 6 },
+  headerRight: { alignItems: "flex-end", gap: DesignTokens.spacing.xs + 2 },
   headerLogo: {
     width: 34,
     height: 34,
-    borderRadius: 10,
-    shadowColor: "#7C3AED",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
+    borderRadius: DesignTokens.radius.md,
+    ...DesignTokens.shadow.subtle,
   },
   brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
@@ -557,49 +553,49 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 8,
+    borderRadius: DesignTokens.radius.sm,
     borderWidth: 1,
   },
   openPillText: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 0.5 },
   notice: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: DesignTokens.radius.md,
+    padding: DesignTokens.spacing.md,
+    marginBottom: DesignTokens.spacing.md,
     gap: 10,
     borderWidth: 1,
   },
   noticeText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  formCard: { borderRadius: 22, padding: 20, marginBottom: 16, borderWidth: 1 },
+  formCard: { borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.xl, marginBottom: DesignTokens.spacing.lg, borderWidth: 1 },
   formField: { paddingVertical: 2 },
   fieldLabel: { fontSize: 11, fontWeight: "700" as const, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" },
   fieldRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
-  fieldRowRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  fieldRowRight: { flexDirection: "row", alignItems: "center", gap: DesignTokens.spacing.sm },
   optionalTag: { fontSize: 10, fontWeight: "500" as const },
   requiredTag: { fontSize: 10, fontWeight: "700" as const },
   separator: { height: 1, marginVertical: 10 },
   searchToggle: {
-    width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center",
+    width: 28, height: 28, borderRadius: DesignTokens.radius.sm, alignItems: "center", justifyContent: "center",
   },
   searchWrap: { marginBottom: 6, overflow: "hidden" },
   searchBar: {
     flexDirection: "row", alignItems: "center",
-    paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, gap: 6,
+    paddingHorizontal: 10, borderRadius: DesignTokens.radius.sm, borderWidth: 1, gap: 6,
   },
-  searchInput: { flex: 1, fontSize: 13, paddingVertical: 8 },
-  input: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, fontWeight: "500" as const, borderWidth: 1 },
+  searchInput: { flex: 1, fontSize: 13, paddingVertical: DesignTokens.spacing.sm },
+  input: { borderRadius: DesignTokens.radius.md, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, fontWeight: "500" as const, borderWidth: 1 },
   notesInput: { minHeight: 56, fontSize: 13 },
   hintRow: { flexDirection: "row", alignItems: "flex-start", gap: 5, marginTop: 6 },
   hintText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: "500" as const },
-  actionsRow: { flexDirection: "row", gap: 8, marginBottom: 10 },
-  logCard: { borderRadius: 20, padding: 16, marginTop: 12, borderWidth: 1 },
+  actionsRow: { flexDirection: "row", gap: DesignTokens.spacing.sm, marginBottom: 10 },
+  logCard: { borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.lg, marginTop: DesignTokens.spacing.md, borderWidth: 1 },
   logHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
-    paddingBottom: 8,
+    marginBottom: DesignTokens.spacing.sm,
+    paddingBottom: DesignTokens.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(128,128,128,0.08)",
   },
@@ -608,5 +604,5 @@ const styles = StyleSheet.create({
   logStats: { flexDirection: "row", alignItems: "center", gap: 6 },
   logStatText: { fontSize: 11, fontWeight: "600" as const },
   logStatDivider: { fontSize: 10 },
-  spacer: { height: 20 },
+  spacer: { height: DesignTokens.spacing.xl },
 });

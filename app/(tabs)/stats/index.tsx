@@ -9,12 +9,13 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TrendingUp, CheckCircle, Target, Inbox, Calendar, Trophy, Medal, Crown, Upload } from "lucide-react-native";
 import { Image } from "expo-image";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { DesignTokens } from "@/constants/colors";
+import ScreenContainer from "@/components/ScreenContainer";
 import { fetchCollectorStats, fetchLeaderboard, clearApiCache } from "@/services/googleSheets";
 import { CollectorStats, LeaderboardEntry } from "@/types";
 
@@ -27,7 +28,7 @@ function normalizeCollectorName(name: string): string {
 type LeaderboardTab = "combined" | "sf" | "mx";
 type LeaderboardPeriod = "thisWeek" | "lastWeek";
 
-function AnimatedBar({ value, maxValue, color, delay }: { value: number; maxValue: number; color: string; delay: number }) {
+const AnimatedBar = React.memo(function AnimatedBar({ value, maxValue, color, delay }: { value: number; maxValue: number; color: string; delay: number }) {
   const widthAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const pct = maxValue > 0 ? Math.min(value / maxValue, 1) : 0;
@@ -39,14 +40,14 @@ function AnimatedBar({ value, maxValue, color, delay }: { value: number; maxValu
       <Animated.View style={[barStyles.fill, { backgroundColor: color, width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] }) }]} />
     </View>
   );
-}
+});
 
 const barStyles = StyleSheet.create({
   track: { height: 5, borderRadius: 3, backgroundColor: "rgba(128,128,128,0.08)", overflow: "hidden" },
   fill: { height: 5, borderRadius: 3 },
 });
 
-function HeroStat({ label, value, icon, color, index }: { label: string; value: string; icon: React.ReactNode; color: string; index: number }) {
+const HeroStat = React.memo(function HeroStat({ label, value, icon, color, index }: { label: string; value: string; icon: React.ReactNode; color: string; index: number }) {
   const { colors } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(16)).current;
@@ -65,9 +66,9 @@ function HeroStat({ label, value, icon, color, index }: { label: string; value: 
       <Text style={[styles.heroLabel, { color: colors.textMuted }]}>{label}</Text>
     </Animated.View>
   );
-}
+});
 
-function LeaderboardRow({ entry, index, isCurrentUser, colors }: { entry: LeaderboardEntry; index: number; isCurrentUser: boolean; colors: ReturnType<typeof useTheme>["colors"] }) {
+const LeaderboardRow = React.memo(function LeaderboardRow({ entry, index, isCurrentUser, colors }: { entry: LeaderboardEntry; index: number; isCurrentUser: boolean; colors: ReturnType<typeof useTheme>["colors"] }) {
   const rankColor = entry.rank === 1 ? colors.gold : entry.rank === 2 ? colors.silver : entry.rank === 3 ? colors.bronze : colors.textMuted;
   const rankBg = entry.rank === 1 ? colors.goldBg : entry.rank === 2 ? colors.silverBg : entry.rank === 3 ? colors.bronzeBg : colors.bgInput;
   const regionColor = entry.region === "MX" ? colors.mxOrange : entry.region === "SF" ? colors.sfBlue : colors.accent;
@@ -106,7 +107,7 @@ function LeaderboardRow({ entry, index, isCurrentUser, colors }: { entry: Leader
       <AnimatedBar value={entry.hoursLogged} maxValue={80} color={rankColor} delay={index * 50 + 200} />
     </View>
   );
-}
+});
 
 const lbStyles = StyleSheet.create({
   row: { paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4 },
@@ -122,7 +123,7 @@ const lbStyles = StyleSheet.create({
   statSep: { fontSize: 10 },
 });
 
-function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: {
+const ComparisonCard = React.memo(function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: {
   mxHours: number; sfHours: number; mxCompleted: number; sfCompleted: number; colors: ReturnType<typeof useTheme>["colors"];
 }) {
   const totalHours = mxHours + sfHours;
@@ -162,12 +163,12 @@ function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: 
       </View>
     </View>
   );
-}
+});
 
 const compStyles = StyleSheet.create({
   card: {
-    borderRadius: 20, padding: 16, borderWidth: 1, marginBottom: 12,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
+    borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.lg, borderWidth: 1, marginBottom: DesignTokens.spacing.md,
+    ...DesignTokens.shadow.card,
   },
   title: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 1.2, marginBottom: 10 },
   barWrap: { flexDirection: "row", height: 24, borderRadius: 6, overflow: "hidden", marginBottom: 12 },
@@ -183,7 +184,6 @@ const compStyles = StyleSheet.create({
 
 export default function StatsScreen() {
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured } = useCollection();
   const [refreshing, setRefreshing] = useState(false);
@@ -274,7 +274,10 @@ export default function StatsScreen() {
   }, [statsQuery, leaderboardQuery, queryClient, selectedCollectorName]);
 
   const stats = statsQuery.data;
-  const cardShadow = { shadowColor: isDark ? '#7C3AED' : colors.shadow, shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.15 : 0.1, shadowRadius: 20, elevation: 8 };
+  const cardShadow = useMemo(() => ({
+    shadowColor: isDark ? colors.accent : colors.shadow,
+    ...DesignTokens.shadow.elevated,
+  }), [isDark, colors]);
   const refreshControl = Platform.OS === "web"
     ? undefined
     : <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />;
@@ -310,18 +313,21 @@ export default function StatsScreen() {
 
   if (!selectedCollector) {
     return (
-      <View style={[styles.empty, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
-        <Inbox size={44} color={colors.border} />
-        <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Collector Selected</Text>
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Set your profile in the Tools tab to view stats</Text>
-      </View>
+      <ScreenContainer>
+        <View style={styles.empty}>
+          <Inbox size={44} color={colors.border} />
+          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Collector Selected</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Set your profile in the Tools tab to view stats</Text>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
-      contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]}
+    <ScreenContainer>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
       refreshControl={refreshControl}
     >
@@ -578,23 +584,24 @@ export default function StatsScreen() {
       )}
 
       <View style={styles.spacer} />
-    </ScrollView>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20 },
+  content: { padding: DesignTokens.spacing.xl, paddingBottom: 140 },
   pageHeader: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end",
-    marginBottom: 22, paddingBottom: 12, borderBottomWidth: 1,
+    marginBottom: DesignTokens.spacing.xxl, paddingBottom: DesignTokens.spacing.md, borderBottomWidth: 1,
   },
-  pageHeaderRight: { alignItems: "flex-end", gap: 4 },
+  pageHeaderRight: { alignItems: "flex-end", gap: DesignTokens.spacing.xs },
   headerTag: {
     alignSelf: "flex-start",
-    borderRadius: 7,
+    borderRadius: DesignTokens.radius.xs,
     borderWidth: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: DesignTokens.spacing.sm,
     paddingVertical: 3,
     marginBottom: 2,
   },
@@ -605,23 +612,23 @@ const styles = StyleSheet.create({
   },
   headerLogo: {
     width: 28, height: 28,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    ...DesignTokens.shadow.subtle,
   },
   brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
   rigBadge: { fontSize: 10, letterSpacing: 0.6, fontWeight: "500" as const },
-  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: DesignTokens.spacing.md },
   sectionLabel: { fontSize: 10, letterSpacing: 1.4, fontWeight: "700" as const },
   sectionLabelMuted: { fontSize: 10, letterSpacing: 1.2, fontWeight: "600" as const },
   heroGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
   heroCard: {
-    flex: 1, minWidth: "44%", borderRadius: 20, padding: 16, borderWidth: 1,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
+    flex: 1, minWidth: "44%", borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.lg, borderWidth: 1,
+    ...DesignTokens.shadow.card,
   },
-  heroIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 10 },
+  heroIconWrap: { width: 36, height: 36, borderRadius: DesignTokens.radius.md, alignItems: "center", justifyContent: "center", marginBottom: 10 },
   heroValue: { fontSize: 24, letterSpacing: -0.5, fontWeight: "700" as const },
   heroLabel: { fontSize: 11, marginTop: 2, fontWeight: "500" as const },
-  weekCard: { borderRadius: 20, padding: 18, marginBottom: 12, borderWidth: 1 },
+  weekCard: { borderRadius: DesignTokens.radius.xl, padding: 18, marginBottom: DesignTokens.spacing.md, borderWidth: 1 },
   weekRow: { flexDirection: "row", alignItems: "center" },
   weekSep: { width: 1, height: 28 },
   weekItem: { flex: 1, alignItems: "center" },
@@ -631,14 +638,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    borderRadius: 12,
+    borderRadius: DesignTokens.radius.md,
     borderWidth: 1,
     padding: 6,
-    marginBottom: 8,
+    marginBottom: DesignTokens.spacing.sm,
   },
   periodBtn: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: DesignTokens.radius.sm,
     borderWidth: 1,
     borderColor: "transparent",
     alignItems: "center",
@@ -648,42 +655,42 @@ const styles = StyleSheet.create({
   periodBtnText: { fontSize: 11, letterSpacing: 0.3 },
   lbTabRow: {
     flexDirection: "row", alignItems: "center", gap: 6,
-    borderRadius: 12, borderWidth: 1, padding: 6, marginBottom: 10,
+    borderRadius: DesignTokens.radius.md, borderWidth: 1, padding: 6, marginBottom: 10,
   },
   lbTabBtn: {
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "transparent",
+    paddingHorizontal: 14, paddingVertical: 6, borderRadius: DesignTokens.radius.sm, borderWidth: 1, borderColor: "transparent",
   },
   lbTabText: { fontSize: 12, letterSpacing: 0.3 },
-  leaderboardCard: { borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1 },
-  lbHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 4, paddingBottom: 8, marginBottom: 4 },
+  leaderboardCard: { borderRadius: DesignTokens.radius.xl, padding: 14, marginBottom: 14, borderWidth: 1 },
+  lbHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 4, paddingBottom: DesignTokens.spacing.sm, marginBottom: 4 },
   lbHeaderText: { fontSize: 10, fontWeight: "600" as const, letterSpacing: 0.5, textTransform: "uppercase" },
-  lbEmpty: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 12, alignItems: "center" },
-  loadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  lbEmpty: { borderRadius: DesignTokens.radius.lg, padding: DesignTokens.spacing.xl, borderWidth: 1, marginBottom: DesignTokens.spacing.md, alignItems: "center" },
+  loadingRow: { flexDirection: "row", alignItems: "center", gap: DesignTokens.spacing.sm },
   inlineSyncDot: { width: 7, height: 7, borderRadius: 4 },
   lbEmptyText: { fontSize: 13 },
   lbEmptyRetry: { fontSize: 12, marginTop: 6, fontWeight: "600" as const },
-  recentCard: { borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1 },
+  recentCard: { borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.lg, marginBottom: 14, borderWidth: 1 },
   recentTitle: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 1.2, marginBottom: 10 },
-  recentRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, borderBottomWidth: 1, gap: 8 },
+  recentRow: { flexDirection: "row", alignItems: "center", paddingVertical: DesignTokens.spacing.sm, borderBottomWidth: 1, gap: DesignTokens.spacing.sm },
   recentRowLast: { borderBottomWidth: 0 },
   recentDot: { width: 6, height: 6, borderRadius: 3 },
   recentName: { flex: 1, fontSize: 13, fontWeight: "500" as const },
-  recentRegionTag: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
+  recentRegionTag: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: DesignTokens.radius.xs },
   recentRegionText: { fontSize: 9, fontWeight: "700" as const, letterSpacing: 0.5 },
   recentTasks: { fontSize: 12, fontWeight: "600" as const },
-  loadingWrap: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 20 },
+  loadingWrap: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: DesignTokens.spacing.sm, paddingVertical: DesignTokens.spacing.xl },
   loadingText: { fontSize: 13 },
-  allTimeCard: { borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1 },
-  allTimeGrid: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  allTimeCard: { borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.lg, marginBottom: DesignTokens.spacing.md, borderWidth: 1 },
+  allTimeGrid: { flexDirection: "row", alignItems: "center", marginBottom: DesignTokens.spacing.md },
   allTimeItem: { flex: 1, alignItems: "center" },
   allTimeSep: { width: 1, height: 24 },
   allTimeVal: { fontSize: 15, fontWeight: "600" as const },
   allTimeLbl: { fontSize: 10, marginTop: 3 },
   allTimeDivider: { height: 1, marginBottom: 10 },
-  allTimeSub: { fontSize: 10, marginTop: 8, textAlign: "center" },
-  topTasksCard: { borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1 },
+  allTimeSub: { fontSize: 10, marginTop: DesignTokens.spacing.sm, textAlign: "center" },
+  topTasksCard: { borderRadius: DesignTokens.radius.xl, padding: DesignTokens.spacing.lg, marginBottom: DesignTokens.spacing.md, borderWidth: 1 },
   topTasksTitle: { fontSize: 10, letterSpacing: 1.1, textTransform: "uppercase", marginBottom: 10, fontWeight: "600" as const },
-  topTaskRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, borderBottomWidth: 1, gap: 10 },
+  topTaskRow: { flexDirection: "row", alignItems: "center", paddingVertical: DesignTokens.spacing.sm, borderBottomWidth: 1, gap: 10 },
   topTaskLast: { borderBottomWidth: 0 },
   topTaskDot: { width: 5, height: 5, borderRadius: 3 },
   topTaskName: { flex: 1, fontSize: 12 },
@@ -691,5 +698,5 @@ const styles = StyleSheet.create({
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40, gap: 10 },
   emptyTitle: { fontSize: 17, fontWeight: "600" as const },
   emptyText: { fontSize: 14, textAlign: "center" },
-  spacer: { height: 20 },
+  spacer: { height: DesignTokens.spacing.xl },
 });

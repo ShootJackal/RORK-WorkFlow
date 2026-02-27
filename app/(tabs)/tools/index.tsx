@@ -14,7 +14,6 @@ import {
   Alert,
   Switch,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MessageSquare,
   Clock,
@@ -47,12 +46,14 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
+import { DesignTokens } from "@/constants/colors";
+import ScreenContainer from "@/components/ScreenContainer";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAdminDashboardData, fetchTaskActualsData, clearAllCaches } from "@/services/googleSheets";
 import { AdminDashboardData, CollectorSummary, TaskActualRow } from "@/types";
 import SelectPicker from "@/components/SelectPicker";
 
-const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
+const FONT_MONO = DesignTokens.fontMono;
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 const COMPLETED_TASK_STATUSES = new Set(["DONE", "COMPLETED", "COMPLETE", "FINISHED", "CLOSED"]);
@@ -79,7 +80,7 @@ const TIMER_OPTIONS = [
   { mins: 60, label: "60 min", color: "#1D4ED8" },
 ];
 
-function SectionHeader({ label, icon }: { label: string; icon?: React.ReactNode }) {
+const SectionHeader = React.memo(function SectionHeader({ label, icon }: { label: string; icon?: React.ReactNode }) {
   const { colors } = useTheme();
   return (
     <View style={sectionStyles.row}>
@@ -87,7 +88,7 @@ function SectionHeader({ label, icon }: { label: string; icon?: React.ReactNode 
       <Text style={[sectionStyles.label, { color: colors.textMuted }]}>{label}</Text>
     </View>
   );
-}
+});
 
 const sectionStyles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10, marginTop: 4, paddingHorizontal: 2 },
@@ -353,8 +354,8 @@ function AdminPasswordModal({ visible, onClose, onAuthenticate }: {
 }
 
 const adminModalStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center", padding: 24 },
-  card: { width: "100%", maxWidth: 340, borderRadius: 20, borderWidth: 1, padding: 24 },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center", padding: DesignTokens.spacing.xxl },
+  card: { width: "100%", maxWidth: 340, borderRadius: DesignTokens.radius.xl, borderWidth: 1, padding: DesignTokens.spacing.xxl },
   header: { alignItems: "center", marginBottom: 20 },
   iconWrap: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", marginBottom: 12 },
   title: { fontSize: 18, fontWeight: "700" as const, marginBottom: 4 },
@@ -536,8 +537,8 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
 
 const adminStyles = StyleSheet.create({
   card: {
-    borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 2,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
+    borderRadius: DesignTokens.radius.xl, borderWidth: 1, padding: DesignTokens.spacing.lg, marginBottom: 2,
+    ...DesignTokens.shadow.card,
   },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -600,7 +601,6 @@ function QuickCard({ title, subtitle, icon, iconBg, onPress, testID, colors }: {
 
 export default function ToolsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
-  const insets = useSafeAreaInsets();
   const {
     collectors, selectedCollectorName, selectedCollector, selectedRig,
     selectCollector, setSelectedRig, configured, isAdmin, authenticateAdmin, logoutAdmin,
@@ -710,10 +710,11 @@ export default function ToolsScreen() {
   const cardStyle = [styles.card, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }];
 
   return (
-    <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
-      <ScrollView
-        style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
-        contentContainerStyle={styles.content}
+    <ScreenContainer>
+      <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
@@ -883,22 +884,23 @@ export default function ToolsScreen() {
           <Text style={[styles.clearCacheText, { color: colors.textMuted }]}>Clear Local Cache</Text>
         </TouchableOpacity>
 
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
 
-      <AdminPasswordModal
-        visible={showAdminModal}
-        onClose={() => setShowAdminModal(false)}
-        onAuthenticate={handleAdminAuth}
-      />
-    </Animated.View>
+        <AdminPasswordModal
+          visible={showAdminModal}
+          onClose={() => setShowAdminModal(false)}
+          onAuthenticate={handleAdminAuth}
+        />
+      </Animated.View>
+    </ScreenContainer>
   );
 }
 
 const timerStyles = StyleSheet.create({
   bar: {
-    borderRadius: 18, borderWidth: 1, padding: 14, marginBottom: 2,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 5,
+    borderRadius: DesignTokens.radius.xl - 2, borderWidth: 1, padding: 14, marginBottom: 2,
+    ...DesignTokens.shadow.card,
   },
   topRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   time: { fontSize: 20, fontWeight: "900" as const, letterSpacing: 1, minWidth: 62 },
@@ -924,14 +926,14 @@ const timerStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 100 },
-  pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1 },
-  pageHeaderRight: { alignItems: "flex-end", gap: 4 },
+  content: { paddingHorizontal: DesignTokens.spacing.xl, paddingTop: 14, paddingBottom: 120 },
+  pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: DesignTokens.spacing.lg, paddingBottom: DesignTokens.spacing.md, borderBottomWidth: 1 },
+  pageHeaderRight: { alignItems: "flex-end", gap: DesignTokens.spacing.xs },
   headerTag: {
     alignSelf: "flex-start",
-    borderRadius: 7,
+    borderRadius: DesignTokens.radius.xs,
     borderWidth: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: DesignTokens.spacing.sm,
     paddingVertical: 3,
     marginBottom: 2,
   },
@@ -939,8 +941,8 @@ const styles = StyleSheet.create({
   brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
   headerLogo: {
-    width: 34, height: 34, borderRadius: 10,
-    shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 8,
+    width: 34, height: 34, borderRadius: DesignTokens.radius.md,
+    ...DesignTokens.shadow.subtle,
   },
   adminBadge: {
     flexDirection: "row", alignItems: "center", gap: 4,
@@ -948,20 +950,20 @@ const styles = StyleSheet.create({
   },
   adminBadgeText: { fontSize: 8, fontWeight: "800" as const, letterSpacing: 1.2 },
   hiddenTimer: { display: "none" },
-  sectionGap: { height: 20 },
+  sectionGap: { height: DesignTokens.spacing.xl },
   card: {
-    borderRadius: 20, borderWidth: 1, overflow: "hidden", marginBottom: 2,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 6,
+    borderRadius: DesignTokens.radius.xl, borderWidth: 1, overflow: "hidden", marginBottom: 2,
+    ...DesignTokens.shadow.card,
   },
-  settingRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12, gap: 10 },
-  settingIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  settingRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: DesignTokens.spacing.md, gap: 10 },
+  settingIconWrap: { width: 36, height: 36, borderRadius: DesignTokens.radius.md, alignItems: "center", justifyContent: "center" },
   settingContent: { flex: 1 },
   settingLabel: { fontSize: 10, letterSpacing: 0.4, marginBottom: 4, textTransform: "uppercase", fontWeight: "600" as const },
   settingDivider: { height: 1, marginLeft: 60 },
   noRigText: { fontSize: 12, fontStyle: "italic" as const, paddingVertical: 4 },
   profileBadge: {
-    flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8,
-    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, alignSelf: "flex-start",
+    flexDirection: "row", alignItems: "center", gap: 6, marginTop: DesignTokens.spacing.sm,
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: DesignTokens.radius.sm, borderWidth: 1, alignSelf: "flex-start",
   },
   profileBadgeText: { fontSize: 11, fontWeight: "600" as const },
   adminLogoutRow: {
@@ -977,11 +979,11 @@ const styles = StyleSheet.create({
   quickGrid: { flexDirection: "row", gap: 10 },
   quickCardWrap: { flex: 1 },
   quickCard: {
-    borderRadius: 18, borderWidth: 1, padding: 14, aspectRatio: 1,
+    borderRadius: DesignTokens.radius.xl - 2, borderWidth: 1, padding: 14, aspectRatio: 1,
     alignItems: "center", justifyContent: "center",
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 5,
+    ...DesignTokens.shadow.card,
   },
-  quickIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 5 },
+  quickIcon: { width: 36, height: 36, borderRadius: DesignTokens.radius.md, alignItems: "center", justifyContent: "center", marginBottom: 5 },
   quickTitle: { fontSize: 11, marginBottom: 1, textAlign: "center", fontWeight: "700" as const },
   quickSub: { fontSize: 9, textAlign: "center" },
   sheetRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12, gap: 10 },
@@ -992,7 +994,7 @@ const styles = StyleSheet.create({
   sheetDesc: { fontSize: 10, marginTop: 2 },
   clearCacheBtn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    paddingVertical: 10, borderRadius: 10, borderWidth: 1,
+    paddingVertical: 10, borderRadius: DesignTokens.radius.md, borderWidth: 1,
   },
   clearCacheText: { fontSize: 12, fontWeight: "500" as const },
   bottomSpacer: { height: 20 },

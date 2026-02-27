@@ -1,3 +1,48 @@
+import { Platform } from "react-native";
+
+export const DesignTokens = {
+  radius: {
+    xs: 6,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    xxl: 24,
+    pill: 100,
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    xxl: 24,
+    xxxl: 32,
+  },
+  shadow: {
+    card: {
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 6,
+    },
+    elevated: {
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+    subtle: {
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+  },
+  maxContentWidth: 600,
+  fontMono: Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" }),
+} as const;
+
 export interface ThemeColors {
   bg: string;
   bgSecondary: string;
