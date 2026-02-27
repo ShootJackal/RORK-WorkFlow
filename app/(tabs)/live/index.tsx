@@ -165,6 +165,7 @@ function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }
   const { colors, isDark } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const cursorAnim = useRef(new Animated.Value(0)).current;
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const blink = Animated.loop(
@@ -178,7 +179,14 @@ function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }
   }, [cursorAnim]);
 
   useEffect(() => {
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
+    };
   }, [lines.length]);
 
   const termBg = isDark ? '#0C0C0E' : '#FDFCF8';
@@ -535,7 +543,7 @@ export default function LiveScreen() {
   }, [allLines, configured]);
 
   useEffect(() => {
-    const clockInterval = setInterval(() => setClockNow(new Date()), 60);
+    const clockInterval = setInterval(() => setClockNow(new Date()), 100);
     return () => clearInterval(clockInterval);
   }, []);
 

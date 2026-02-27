@@ -133,10 +133,10 @@ function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: 
     <View style={[compStyles.card, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>
       <Text style={[compStyles.title, { color: colors.textMuted }]}>MX vs SF THIS WEEK</Text>
       <View style={compStyles.barWrap}>
-        <View style={[compStyles.barLeft, { backgroundColor: colors.mxOrange, width: `${Math.max(mxPct, 5)}%` as unknown as number }]}>
+        <View style={[compStyles.barLeft, { backgroundColor: colors.mxOrange, width: `${Math.max(mxPct, 5)}%` }]}>
           <Text style={compStyles.barLabel}>MX</Text>
         </View>
-        <View style={[compStyles.barRight, { backgroundColor: colors.sfBlue, width: `${Math.max(100 - mxPct, 5)}%` as unknown as number }]}>
+        <View style={[compStyles.barRight, { backgroundColor: colors.sfBlue, width: `${Math.max(100 - mxPct, 5)}%` }]}>
           <Text style={compStyles.barLabel}>SF</Text>
         </View>
       </View>
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
   sectionLabelMuted: { fontSize: 10, letterSpacing: 1.2, fontWeight: "600" as const },
   heroGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
   heroCard: {
-    flex: 1, minWidth: "44%" as unknown as number, borderRadius: 20, padding: 16, borderWidth: 1,
+    flex: 1, minWidth: "44%", borderRadius: 20, padding: 16, borderWidth: 1,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
   },
   heroIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 10 },
