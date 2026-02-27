@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Collector, Task, LogEntry, SubmitPayload, SubmitResponse, CollectorStats, TaskActualRow, FullLogEntry, AdminDashboardData, LeaderboardEntry } from "@/types";
 
-const DEFAULT_SCRIPT_URL = "[REDACTED]";
+const DEFAULT_SCRIPT_URL = "";
 const REQUEST_TIMEOUT_MS = 25000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
@@ -89,10 +89,29 @@ function normalizeScriptUrl(raw: string): string {
   return trimmed;
 }
 
+function isValidScriptUrl(url: string): boolean {
+  if (!url) return false;
+  if (/\[REDACTED\]/i.test(url)) return false;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+  } catch {
+    return false;
+  }
+  return /\/exec$/i.test(url);
+}
+
 function getScriptUrl(): string {
-  const fromEnv = normalizeScriptUrl(process.env.EXPO_PUBLIC_GOOGLE_SCRIPT_URL ?? "");
-  const fallback = normalizeScriptUrl(DEFAULT_SCRIPT_URL);
+  const fromEnvRaw = normalizeScriptUrl(process.env.EXPO_PUBLIC_GOOGLE_SCRIPT_URL ?? "");
+  const fallbackRaw = normalizeScriptUrl(DEFAULT_SCRIPT_URL);
+  const fromEnv = isValidScriptUrl(fromEnvRaw) ? fromEnvRaw : "";
+  const fallback = isValidScriptUrl(fallbackRaw) ? fallbackRaw : "";
   const resolved = fromEnv || fallback;
+
+  if (!resolved && (fromEnvRaw || fallbackRaw)) {
+    console.log("[API] Ignoring invalid script URL config");
+  }
+
   console.log("[API] getScriptUrl resolved:", resolved ? `${resolved.slice(0, 80)}...` : "EMPTY");
   return resolved;
 }
