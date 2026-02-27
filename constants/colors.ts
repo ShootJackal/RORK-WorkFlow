@@ -77,13 +77,13 @@ export interface ThemeColors {
 }
 
 export const LightTheme: ThemeColors = {
-  bg: '#F5F3F0',
-  bgSecondary: '#EDEAE6',
-  bgCard: '#FFFFFF',
-  bgInput: '#F0EDE9',
-  bgElevated: '#E5E2DD',
-  border: '#DDD9D3',
-  borderLight: '#E8E5E0',
+  bg: '#ECE8E1',
+  bgSecondary: '#E4DED4',
+  bgCard: '#F8F5EE',
+  bgInput: '#EEE8DE',
+  bgElevated: '#E2DBCF',
+  border: '#D5CEC1',
+  borderLight: '#E2DBCF',
   borderFocus: '#8B6FC0',
 
   textPrimary: '#1A1720',
@@ -118,17 +118,17 @@ export const LightTheme: ThemeColors = {
   sheets: '#2D8A56',
   sheetsBg: '#E4F4EB',
 
-  tabBar: '#FFFFFF',
+  tabBar: '#F4F0E8',
   tabBarBorder: 'transparent',
 
-  skeleton: '#DDD9D3',
+  skeleton: '#D5CEC1',
   overlay: 'rgba(0,0,0,0.25)',
 
   shadow: '#3D2B6B',
   shadowCard: 'rgba(60, 40, 110, 0.08)',
 
   terminal: '#7C3AED',
-  terminalBg: '#F5F3F0',
+  terminalBg: '#ECE8E1',
   terminalGreen: '#2D8A56',
   terminalDim: '#8E889A',
 
@@ -151,27 +151,27 @@ export const LightTheme: ThemeColors = {
   bronze: '#A0522D',
   bronzeBg: '#FDF0E8',
 
-  cardDepth: 'rgba(124,58,237,0.03)',
+  cardDepth: 'rgba(124,58,237,0.05)',
 };
 
 export const DarkTheme: ThemeColors = {
-  bg: '#0F0E13',
-  bgSecondary: '#151419',
-  bgCard: '#1B1A21',
-  bgInput: '#201F27',
-  bgElevated: '#26252D',
-  border: '#2A2933',
-  borderLight: '#32313B',
+  bg: '#191821',
+  bgSecondary: '#1F1E28',
+  bgCard: '#262430',
+  bgInput: '#2C2A36',
+  bgElevated: '#31303C',
+  border: '#3A3846',
+  borderLight: '#474556',
   borderFocus: '#A78BFA',
 
   textPrimary: '#EEEDF2',
-  textSecondary: '#A09CAB',
-  textMuted: '#5E5B6A',
+  textSecondary: '#B7B2C4',
+  textMuted: '#7D7890',
 
   accent: '#A78BFA',
   accentLight: '#C4B5FD',
-  accentDim: '#2A1F4E',
-  accentSoft: '#1C1630',
+  accentDim: '#3B2E64',
+  accentSoft: '#2A2342',
 
   assign: '#A78BFA',
   assignBg: '#1C1630',
@@ -196,17 +196,17 @@ export const DarkTheme: ThemeColors = {
   sheets: '#5EBD8A',
   sheetsBg: '#0E1A12',
 
-  tabBar: '#1B1A21',
+  tabBar: '#24222D',
   tabBarBorder: 'transparent',
 
-  skeleton: '#2A2933',
+  skeleton: '#3A3846',
   overlay: 'rgba(0,0,0,0.6)',
 
   shadow: '#000000',
   shadowCard: 'rgba(0, 0, 0, 0.4)',
 
   terminal: '#A78BFA',
-  terminalBg: '#0F0E13',
+  terminalBg: '#191821',
   terminalGreen: '#5EBD8A',
   terminalDim: '#4A4858',
 
@@ -229,5 +229,5 @@ export const DarkTheme: ThemeColors = {
   bronze: '#C87B52',
   bronzeBg: '#1A1208',
 
-  cardDepth: 'rgba(255,255,255,0.02)',
+  cardDepth: 'rgba(255,255,255,0.04)',
 };

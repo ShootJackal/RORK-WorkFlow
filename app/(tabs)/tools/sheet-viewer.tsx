@@ -213,6 +213,18 @@ function TaskActualsView({ configured }: { configured: boolean }) {
     return { recollect, active, other, done };
   }, [tasks]);
 
+  const hourTotals = useMemo(() => {
+    return tasks.reduce(
+      (acc, task) => {
+        acc.collected += Number(task.collectedHours) || 0;
+        acc.good += Number(task.goodHours) || 0;
+        acc.remaining += Number(task.remainingHours) || 0;
+        return acc;
+      },
+      { collected: 0, good: 0, remaining: 0 }
+    );
+  }, [tasks]);
+
   if (taskQuery.isLoading) {
     return <LoadingState colors={colors} message="Loading task actuals..." />;
   }
@@ -238,6 +250,11 @@ function TaskActualsView({ configured }: { configured: boolean }) {
         <SummaryChip label="Active" value={String(grouped.active.length)} color={colors.accent} bg={colors.accentSoft} />
         <SummaryChip label="Recollect" value={String(grouped.recollect.length)} color={colors.cancel} bg={colors.cancelBg} />
         <SummaryChip label="Done" value={String(grouped.done.length)} color={colors.complete} bg={colors.completeBg} />
+      </View>
+      <View style={viewStyles.summaryRow}>
+        <SummaryChip label="Collected hrs" value={`${hourTotals.collected.toFixed(2)}h`} color={colors.accent} bg={colors.accentSoft} />
+        <SummaryChip label="Good hrs" value={`${hourTotals.good.toFixed(2)}h`} color={colors.complete} bg={colors.completeBg} />
+        <SummaryChip label="Remaining hrs" value={`${hourTotals.remaining.toFixed(2)}h`} color={colors.statusPending} bg={colors.alertYellowBg} />
       </View>
 
       {grouped.recollect.length > 0 && (

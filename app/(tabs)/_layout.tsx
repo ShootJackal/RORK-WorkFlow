@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { Send, Wrench, BarChart3, Radio } from "lucide-react-native";
 import React, { useRef, useCallback } from "react";
+import { BlurView } from "expo-blur";
 import {
   View,
   Text,
@@ -45,7 +46,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
   }, [currentIndex, TAB_WIDTH, sliderAnim]);
 
   const handlePress = useCallback(
-    (tabName: string, index: number) => {
+    (index: number) => {
       const route = state.routes[index];
       const isFocused = state.index === index;
       const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
@@ -58,7 +59,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
   );
 
   const BOTTOM_PAD = insets.bottom > 0 ? insets.bottom : 10;
-  const fadeBg = isDark ? '#0F0E13' : '#F5F3F0';
+  const fadeBg = colors.bg;
 
   return (
     <View style={[barStyles.outerWrap, { paddingBottom: BOTTOM_PAD }]}>
@@ -67,11 +68,18 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
       <View style={[barStyles.fadeLayer2, { backgroundColor: fadeBg, opacity: 0.4 }]} pointerEvents="none" />
       <View style={[barStyles.fadeLayer3, { backgroundColor: fadeBg, opacity: 0.75 }]} pointerEvents="none" />
       <View style={[barStyles.fadeLayer4, { backgroundColor: fadeBg, opacity: 0.95 }]} pointerEvents="none" />
+      <View style={barStyles.blurBand} pointerEvents="none">
+        <BlurView
+          intensity={isDark ? 32 : 56}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
       <View style={[barStyles.island, {
-        backgroundColor: isDark ? '#1B1A21' : '#FFFFFF',
-        shadowColor: isDark ? '#A78BFA' : '#3D2B6B',
-        borderColor: isDark ? '#2A2933' : '#DDD9D3',
+        backgroundColor: colors.tabBar,
+        shadowColor: isDark ? colors.accent : colors.shadow,
+        borderColor: colors.border,
       }]}>
         <Animated.View style={[barStyles.slider, {
           backgroundColor: colors.accent,
@@ -90,7 +98,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
             <TouchableOpacity
               key={tabName}
               style={[barStyles.tab, { width: TAB_WIDTH }]}
-              onPress={() => handlePress(tabName, index)}
+              onPress={() => handlePress(index)}
               activeOpacity={0.7}
               testID={`tab-${tabName}`}
             >
@@ -103,10 +111,10 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
               </View>
               <Text style={[barStyles.label, {
                 color: iconColor,
-                fontWeight: isFocused ? "600" as const : "400" as const,
+                fontWeight: isFocused ? "700" as const : "500" as const,
                 fontSize: isLive ? 8 : 9,
                 letterSpacing: isLive ? 1.5 : 0.5,
-                fontFamily: isFocused ? "Lexend_600SemiBold" : "Lexend_400Regular",
+                fontFamily: isFocused ? "Lexend_700Bold" : "Lexend_500Medium",
               }]}>{cfg.title}</Text>
             </TouchableOpacity>
           );
@@ -141,9 +149,19 @@ const barStyles = StyleSheet.create({
   fadeLayer2: { position: "absolute", bottom: -10, left: 0, right: 0, height: 110 },
   fadeLayer3: { position: "absolute", bottom: -10, left: 0, right: 0, height: 80 },
   fadeLayer4: { position: "absolute", bottom: -10, left: 0, right: 0, height: 55 },
+  blurBand: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    bottom: -2,
+    height: 86,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
+  },
   island: {
     flexDirection: "row", borderRadius: 28, borderWidth: 1, paddingVertical: 6,
-    shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.15, shadowRadius: 28, elevation: 24,
+    shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.2, shadowRadius: 30, elevation: 24,
     position: "relative", overflow: "hidden", width: "100%",
   },
   slider: { position: "absolute", bottom: 0, height: 2.5, borderTopLeftRadius: 2, borderTopRightRadius: 2 },

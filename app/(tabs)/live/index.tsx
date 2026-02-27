@@ -11,13 +11,12 @@ import {
   Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RefreshCw, Sun, Moon, BookOpen, Trophy, X, User } from "lucide-react-native";
+import { RefreshCw, Sun, Moon, BookOpen, X, User, Clock3 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTodayLog, fetchCollectorStats, fetchRecollections, isApiConfigured } from "@/services/googleSheets";
+import { fetchTodayLog, fetchCollectorStats, fetchRecollections } from "@/services/googleSheets";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
@@ -156,9 +155,10 @@ function NewsTicker({ segments }: { segments: TickerSegment[] }) {
   );
 }
 
-function CmdTerminal({ lines, isLoading, onResync, onPersonalStats }: {
+function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }: {
   lines: TerminalLine[];
   isLoading: boolean;
+  activeRigs: number;
   onResync: () => void;
   onPersonalStats: () => void;
 }) {
@@ -213,10 +213,15 @@ function CmdTerminal({ lines, isLoading, onResync, onPersonalStats }: {
         <Text style={[cmdStyles.titleText, { color: colors.terminalDim, fontFamily: FONT_MONO }]}>
           Live Collection Tracker | EGO-MX - SF
         </Text>
-        <View style={[cmdStyles.sessionBadge, { backgroundColor: isLoading ? colors.statusPending + '18' : colors.terminalGreen + '18' }]}>
-          <View style={[cmdStyles.sessionDot, { backgroundColor: isLoading ? colors.statusPending : colors.terminalGreen }]} />
-          <Text style={[cmdStyles.sessionLabel, { color: isLoading ? colors.statusPending : colors.terminalGreen, fontFamily: FONT_MONO }]}>
-            {isLoading ? 'SYNCING' : 'LIVE'}
+        <View style={cmdStyles.sessionMeta}>
+          <View style={[cmdStyles.sessionBadge, { backgroundColor: isLoading ? colors.statusPending + '18' : colors.terminalGreen + '18' }]}>
+            <View style={[cmdStyles.sessionDot, { backgroundColor: isLoading ? colors.statusPending : colors.terminalGreen }]} />
+            <Text style={[cmdStyles.sessionLabel, { color: isLoading ? colors.statusPending : colors.terminalGreen, fontFamily: FONT_MONO }]}>
+              {isLoading ? 'SYNCING' : 'SYNCED'}
+            </Text>
+          </View>
+          <Text style={[cmdStyles.rigCountMini, { color: colors.terminalDim, fontFamily: FONT_MONO }]}>
+            {activeRigs} rigs
           </Text>
         </View>
       </View>
@@ -332,8 +337,10 @@ export default function LiveScreen() {
   const [isOnline, setIsOnline] = useState(false);
   const [isFeeding, setIsFeeding] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
+  const [clockNow, setClockNow] = useState(() => new Date());
   const lineIndexRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const livePulse = useRef(new Animated.Value(0)).current;
 
   const statsQuery = useQuery({
     queryKey: ["liveStats", selectedCollectorName],
@@ -389,6 +396,7 @@ export default function LiveScreen() {
   }, [mxCollectors, sfCollectors]);
 
   const stats = statsQuery.data;
+  const isSyncing = isFeeding || statsQuery.isFetching || todayLogQuery.isFetching || recollectionsQuery.isFetching;
 
   const tickerSegments = useMemo((): TickerSegment[] => {
     const segs: TickerSegment[] = [];
@@ -452,7 +460,7 @@ export default function LiveScreen() {
     lines.push({ id: `sf_r_${ts}`, text: `Active Rigs:        ${sfRigs}`, type: "data", color: colors.textPrimary });
     if (stats) {
       const sfTasks = Math.max(Math.round(stats.totalAssigned * 0.4), 1);
-      const sfHrs = Number((stats.totalLoggedHours * 0.35).toFixed(2));
+      const sfHrs = (stats.totalLoggedHours * 0.35).toFixed(2);
       const sfRate = Math.min(stats.completionRate + 5, 100);
       lines.push({ id: `sf_t_${ts}`, text: `Tasks Logged:       ${sfTasks}`, type: "data", color: colors.sfBlue });
       lines.push({ id: `sf_h2_${ts}`, text: `Hours Captured:     ${sfHrs}h`, type: "data", color: colors.sfBlue });
@@ -494,7 +502,7 @@ export default function LiveScreen() {
     lines.push({ id: `d7_${ts}`, text: "", type: "empty" });
     lines.push({ id: `d8_${ts}`, text: "\u2500".repeat(44), type: "divider" });
     const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}.${String(now.getMilliseconds()).padStart(3, "0")}`;
     lines.push({ id: `ts_${ts}`, text: `Last sync: ${timeStr} PST`, type: "cmd" });
     lines.push({ id: `rdy_${ts}`, text: "Ready for commands.", type: "cmd" });
 
@@ -525,6 +533,22 @@ export default function LiveScreen() {
     intervalRef.current = setInterval(feed, 90);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [allLines, configured]);
+
+  useEffect(() => {
+    const clockInterval = setInterval(() => setClockNow(new Date()), 60);
+    return () => clearInterval(clockInterval);
+  }, []);
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(livePulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(livePulse, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [livePulse]);
 
   const handleResync = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -559,28 +583,57 @@ export default function LiveScreen() {
   }, [toggleTheme]);
 
   const livePillColor = isDark ? colors.terminalGreen : '#2D8A56';
+  const liveClock = useMemo(() => {
+    const d = clockNow;
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}.${String(d.getMilliseconds()).padStart(3, "0")}`;
+  }, [clockNow]);
 
   return (
     <View style={[liveStyles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
-      <View style={liveStyles.topBar}>
+      <View style={[liveStyles.topBar, { borderBottomColor: colors.border }]}>
         <View style={liveStyles.topBarLeft}>
+          <View style={[liveStyles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
+            <Text style={[liveStyles.headerTagText, { color: colors.accent }]}>LIVE MONITOR</Text>
+          </View>
           <View style={liveStyles.brandRow}>
-            <Text style={[liveStyles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>
+            <Text style={[liveStyles.brandText, { color: colors.accent, fontFamily: "Lexend_700Bold" }]}>
               TaskFlow
             </Text>
             <View style={[liveStyles.liveBadge, {
               backgroundColor: isOnline ? livePillColor + '14' : colors.cancel + '14',
               borderColor: isOnline ? livePillColor + '40' : colors.cancel + '40',
             }]}>
+              <Animated.View
+                pointerEvents="none"
+                style={[liveStyles.liveGlow, {
+                  backgroundColor: isOnline ? livePillColor : colors.cancel,
+                  opacity: livePulse.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.28] }),
+                  transform: [{ scale: livePulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }],
+                }]}
+              />
               <View style={[liveStyles.liveDot, { backgroundColor: isOnline ? livePillColor : colors.cancel }]} />
               <Text style={[liveStyles.liveLabel, { color: isOnline ? livePillColor : colors.cancel, fontFamily: FONT_MONO }]}>
                 {isOnline ? "LIVE" : "OFF"}
               </Text>
             </View>
           </View>
-          <Text style={[liveStyles.rigCountText, { color: colors.textMuted, fontFamily: "Lexend_400Regular" }]}>
-            {totalRigCount} rigs active
-          </Text>
+          <View style={liveStyles.metaRow}>
+            <Text style={[liveStyles.rigCountText, { color: colors.textMuted, fontFamily: "Lexend_500Medium" }]}>
+              {totalRigCount} rigs active
+            </Text>
+            <View style={[liveStyles.clockPill, {
+              backgroundColor: isSyncing ? colors.statusPending + "14" : colors.bgCard,
+              borderColor: isSyncing ? colors.statusPending + "3A" : colors.border,
+            }]}>
+              <Clock3 size={11} color={isSyncing ? colors.statusPending : colors.textMuted} />
+              <Text style={[liveStyles.clockText, {
+                color: isSyncing ? colors.statusPending : colors.textSecondary,
+                fontFamily: FONT_MONO,
+              }]}>
+                {liveClock}
+              </Text>
+            </View>
+          </View>
         </View>
         <View style={liveStyles.topBarRight}>
           <TouchableOpacity
@@ -608,6 +661,7 @@ export default function LiveScreen() {
         <CmdTerminal
           lines={liveLines}
           isLoading={isFeeding}
+          activeRigs={totalRigCount}
           onResync={handleResync}
           onPersonalStats={handlePersonalStats}
         />
@@ -657,6 +711,7 @@ const cmdStyles = StyleSheet.create({
   dots: { flexDirection: "row", gap: 5 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   titleText: { fontSize: 9, letterSpacing: 0.3, marginLeft: 10, flex: 1 },
+  sessionMeta: { alignItems: "flex-end", gap: 2 },
   sessionBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -667,6 +722,7 @@ const cmdStyles = StyleSheet.create({
   },
   sessionDot: { width: 4, height: 4, borderRadius: 2 },
   sessionLabel: { fontSize: 7, fontWeight: "800" as const, letterSpacing: 1 },
+  rigCountMini: { fontSize: 7, letterSpacing: 0.5 },
   scrollArea: { maxHeight: 420 },
   scrollContent: { padding: 12, paddingBottom: 8 },
   line: { lineHeight: 19, letterSpacing: 0.2, fontSize: 11 },
@@ -713,11 +769,22 @@ const liveStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 12,
+    borderBottomWidth: 1,
   },
   topBarLeft: { flex: 1 },
+  headerTag: {
+    alignSelf: "flex-start",
+    borderRadius: 7,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 4,
+  },
+  headerTagText: { fontSize: 9, fontWeight: "800" as const, letterSpacing: 1.1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brandText: { fontSize: 34, fontWeight: "300" as const, letterSpacing: 1 },
+  brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   liveBadge: {
+    position: "relative" as const,
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
@@ -726,9 +793,28 @@ const liveStyles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 1,
   },
+  liveGlow: {
+    position: "absolute" as const,
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 9,
+  },
   liveDot: { width: 6, height: 6, borderRadius: 3 },
   liveLabel: { fontSize: 9, fontWeight: "800" as const, letterSpacing: 1.2 },
-  rigCountText: { fontSize: 10, marginTop: 3, letterSpacing: 0.5 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
+  rigCountText: { fontSize: 10, letterSpacing: 0.5 },
+  clockPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  clockText: { fontSize: 9, letterSpacing: 0.45 },
   topBarRight: { flexDirection: "row", gap: 8 },
   iconBtn: {
     width: 38,

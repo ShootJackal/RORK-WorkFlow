@@ -32,7 +32,6 @@ import { useTheme } from "@/providers/ThemeProvider";
 import SelectPicker from "@/components/SelectPicker";
 import ActionButton from "@/components/ActionButton";
 
-const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 function LogEntryRow({ entry, statusColor, colors, isLast }: {
@@ -243,7 +242,10 @@ export default function DashboardScreen() {
         >
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerLeft}>
-              <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>
+              <View style={[styles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
+                <Text style={[styles.headerTagText, { color: colors.accent }]}>COLLECT HUB</Text>
+              </View>
+              <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_700Bold" }]}>
                 Collect
               </Text>
               <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>
@@ -388,7 +390,7 @@ export default function DashboardScreen() {
                 <View style={styles.hintRow}>
                   <Info size={10} color={colors.statusPending} />
                   <Text style={[styles.hintText, { color: colors.statusPending }]}>
-                    Planned chunk: {plannedHoursHint}h
+                    Planned chunk: {Number(plannedHoursHint).toFixed(2)}h
                   </Text>
                 </View>
               )}
@@ -509,9 +511,22 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 20,
     paddingBottom: 14,
-    borderBottomWidth: 0,
+    borderBottomWidth: 1,
   },
-  headerLeft: {},
+  headerLeft: { gap: 3 },
+  headerTag: {
+    alignSelf: "flex-start",
+    borderRadius: 7,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 2,
+  },
+  headerTagText: {
+    fontSize: 9,
+    fontWeight: "800" as const,
+    letterSpacing: 1.1,
+  },
   headerRight: { alignItems: "flex-end", gap: 6 },
   headerLogo: {
     width: 34,
@@ -522,9 +537,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 8,
   },
-  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
-  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
-  rigLabel: { fontSize: 9, letterSpacing: 0.5 },
+  brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
+  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
+  rigLabel: { fontSize: 10, letterSpacing: 0.6, fontWeight: "500" as const },
   openPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -534,7 +549,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
-  openPillText: { fontSize: 11, fontWeight: "600" as const },
+  openPillText: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 0.5 },
   notice: {
     flexDirection: "row",
     alignItems: "center",
