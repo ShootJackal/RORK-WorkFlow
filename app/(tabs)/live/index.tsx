@@ -570,7 +570,7 @@ export default function LiveScreen() {
       }]}>
         <View style={liveStyles.topBarLeft}>
           <View style={liveStyles.brandRow}>
-            <Text style={[liveStyles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
+            <Text style={[liveStyles.brandText, { color: colors.accent }]}>
               TASKFLOW
             </Text>
             <View style={[liveStyles.liveBadge, {
@@ -753,7 +753,7 @@ const liveStyles = StyleSheet.create({
   },
   topBarLeft: { flex: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brandText: { fontSize: 28, fontWeight: "900" as const, letterSpacing: 6 },
+  brandText: { fontSize: 32, fontWeight: "800" as const, letterSpacing: 7 },
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",

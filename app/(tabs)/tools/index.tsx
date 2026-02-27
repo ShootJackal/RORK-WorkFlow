@@ -641,7 +641,7 @@ export default function ToolsScreen() {
         <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
           <View>
             <View style={styles.headerTitleRow}>
-              <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>TOOLS</Text>
+              <Text style={[styles.brandText, { color: colors.accent }]}>TOOLS</Text>
               <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
             </View>
             <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>Settings & Utilities</Text>
@@ -847,10 +847,10 @@ const styles = StyleSheet.create({
   pageHeaderRight: { alignItems: "flex-end", gap: 4 },
   headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
-  brandText: { fontSize: 24, fontWeight: "900" as const, letterSpacing: 5 },
-  brandSub: { fontSize: 9, letterSpacing: 1, marginTop: 2 },
+  brandText: { fontSize: 28, fontWeight: "800" as const, letterSpacing: 6 },
+  brandSub: { fontSize: 10, letterSpacing: 1.5, marginTop: 4, textTransform: "uppercase" as const },
   headerLogo: {
-    width: 28, height: 28,
+    width: 32, height: 32, borderRadius: 8,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
   adminBadge: {

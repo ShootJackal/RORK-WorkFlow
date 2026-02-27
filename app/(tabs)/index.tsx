@@ -244,7 +244,7 @@ export default function DashboardScreen() {
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerLeft}>
               <View style={styles.headerTitleRow}>
-                <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
+                <Text style={[styles.brandText, { color: colors.accent }]}>
                   COLLECT
                 </Text>
                 <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
@@ -260,7 +260,7 @@ export default function DashboardScreen() {
                 contentFit="contain"
               />
               {selectedRig !== "" && (
-                <Text style={[styles.rigLabel, { color: colors.textMuted, fontFamily: FONT_MONO }]}>{selectedRig}</Text>
+                <Text style={[styles.rigLabel, { color: colors.textMuted }]}>{selectedRig}</Text>
               )}
               {openTasks.length > 0 && (
                 <View style={[styles.openPill, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
@@ -519,15 +519,16 @@ const styles = StyleSheet.create({
   headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
   headerRight: { alignItems: "flex-end", gap: 4 },
   headerLogo: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  brandText: { fontSize: 24, fontWeight: "900" as const, letterSpacing: 5 },
-  brandSub: { fontSize: 9, letterSpacing: 1, marginTop: 2 },
+  brandText: { fontSize: 28, fontWeight: "800" as const, letterSpacing: 6 },
+  brandSub: { fontSize: 10, letterSpacing: 1.5, marginTop: 4, textTransform: "uppercase" as const },
   rigLabel: { fontSize: 9, letterSpacing: 0.5 },
   openPill: {
     flexDirection: "row",

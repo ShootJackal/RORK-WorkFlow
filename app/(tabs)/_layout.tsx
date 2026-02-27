@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/providers/ThemeProvider";
+import * as Haptics from "expo-haptics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -67,6 +68,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
         canPreventDefault: true,
       });
       if (!isFocused && !event.defaultPrevented) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         navigation.navigate(route.name);
       }
     },
