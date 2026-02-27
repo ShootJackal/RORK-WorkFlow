@@ -12,7 +12,6 @@ import {
   Modal,
   TextInput,
   Alert,
-  Switch,
 } from "react-native";
 import {
   MessageSquare,
@@ -20,6 +19,9 @@ import {
   AlertTriangle,
   Moon,
   Sun,
+  Snowflake,
+  Glasses,
+  Palette,
   User,
   Cpu,
   Check,
@@ -43,7 +45,7 @@ import {
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { useTheme } from "@/providers/ThemeProvider";
+import { useTheme, THEME_META, type ThemeMode } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
 import { DesignTokens } from "@/constants/colors";
 import ScreenContainer from "@/components/ScreenContainer";
@@ -597,8 +599,15 @@ function QuickCard({ title, subtitle, icon, iconBg, onPress, testID, colors }: {
   );
 }
 
+const THEME_ICON_MAP: Record<string, React.ComponentType<any>> = {
+  sun: Sun,
+  moon: Moon,
+  snowflake: Snowflake,
+  glasses: Glasses,
+};
+
 export default function ToolsScreen() {
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors, resolvedMode, setThemeMode } = useTheme();
   const {
     collectors, selectedCollectorName, selectedCollector, selectedRig,
     selectCollector, setSelectedRig, configured, isAdmin, authenticateAdmin, logoutAdmin,
@@ -689,10 +698,10 @@ export default function ToolsScreen() {
     router.push({ pathname: "/tools/sheet-viewer" as any, params: { sheetId, title: label } });
   }, []);
 
-  const handleToggleTheme = useCallback(() => {
+  const handleSelectTheme = useCallback((theme: ThemeMode) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleTheme();
-  }, [toggleTheme]);
+    setThemeMode(theme);
+  }, [setThemeMode]);
 
   const handleClearCache = useCallback(async () => {
     Alert.alert("Clear Cache", "Clear all locally cached data? The app will re-fetch from the server.", [
@@ -798,27 +807,37 @@ export default function ToolsScreen() {
         </View>
 
         <View style={styles.sectionGap} />
-        <View
-          style={[...cardStyle, styles.themeRow]}
-          testID="theme-toggle"
-        >
-          <View style={[styles.settingIconWrap, { backgroundColor: isDark ? "#1A1510" : colors.bgElevated }]}>
-            {isDark ? <Sun size={16} color={colors.alertYellow} /> : <Moon size={16} color={colors.textSecondary} />}
-          </View>
-          <View style={styles.themeContent}>
-            <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
-            <Text style={[styles.themeSub, { color: colors.textMuted }]}>
-              Switch app appearance
-            </Text>
-          </View>
-          <View style={styles.themeSwitchWrap}>
-            <Switch
-              value={isDark}
-              onValueChange={handleToggleTheme}
-              trackColor={{ false: colors.border, true: colors.accentDim }}
-              thumbColor={isDark ? colors.accent : colors.white}
-              ios_backgroundColor={colors.border}
-            />
+        <SectionHeader label="Appearance" icon={<Palette size={11} color={colors.textMuted} />} />
+        <View style={[...cardStyle, styles.themeCard]} testID="theme-toggle">
+          <View style={styles.themeGrid}>
+            {(Object.entries(THEME_META) as [Exclude<ThemeMode, "system">, typeof THEME_META["light"]][]).map(([key, meta]) => {
+              const isActive = resolvedMode === key;
+              const IconComp = THEME_ICON_MAP[meta.icon] ?? Sun;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[styles.themeOption, {
+                    backgroundColor: isActive ? colors.accentSoft : colors.bgInput,
+                    borderColor: isActive ? colors.accent + '50' : colors.border,
+                  }]}
+                  onPress={() => handleSelectTheme(key)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.themeIconWrap, {
+                    backgroundColor: isActive ? colors.accent + '18' : colors.bgElevated,
+                  }]}>
+                    <IconComp size={16} color={isActive ? colors.accent : colors.textMuted} />
+                  </View>
+                  <Text style={[styles.themeOptionLabel, {
+                    color: isActive ? colors.accent : colors.textSecondary,
+                    fontWeight: isActive ? "700" as const : "500" as const,
+                  }]}>{meta.label}</Text>
+                  {isActive && (
+                    <View style={[styles.themeActiveDot, { backgroundColor: colors.accent }]} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -964,11 +983,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, alignSelf: "flex-start",
   },
   adminLogoutText: { fontSize: 12, fontWeight: "600" as const },
-  themeRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 14, gap: 10 },
-  themeContent: { flex: 1 },
-  themeLabel: { fontSize: 14, fontWeight: "700" as const },
-  themeSub: { fontSize: 10, marginTop: 2 },
-  themeSwitchWrap: { marginLeft: 6 },
+  themeCard: { padding: DesignTokens.spacing.md },
+  themeGrid: { flexDirection: "row", flexWrap: "wrap", gap: DesignTokens.spacing.sm },
+  themeOption: {
+    flex: 1, minWidth: "44%" as unknown as number,
+    borderRadius: DesignTokens.radius.md, borderWidth: 1,
+    padding: DesignTokens.spacing.md, alignItems: "center", gap: DesignTokens.spacing.xs,
+  },
+  themeIconWrap: {
+    width: 32, height: 32, borderRadius: DesignTokens.radius.sm,
+    alignItems: "center", justifyContent: "center", marginBottom: 2,
+  },
+  themeOptionLabel: { fontSize: 11, letterSpacing: 0.2, textAlign: "center" },
+  themeActiveDot: { width: 5, height: 5, borderRadius: 3, marginTop: 2 },
   quickGrid: { flexDirection: "row", gap: 10 },
   quickCardWrap: { flex: 1 },
   quickCard: {

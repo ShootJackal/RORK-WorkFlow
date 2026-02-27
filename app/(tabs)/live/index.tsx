@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Modal,
 } from "react-native";
-import { RefreshCw, Sun, Moon, BookOpen, X, User, Clock3 } from "lucide-react-native";
+import { RefreshCw, Sun, Moon, Snowflake, Glasses, BookOpen, X, User, Clock3 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
@@ -44,7 +44,7 @@ interface TickerSegment {
 }
 
 const NewsTicker = React.memo(function NewsTicker({ segments }: { segments: TickerSegment[] }) {
-  const { isDark } = useTheme();
+  const { colors, isDark } = useTheme();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const pillSlide = useRef(new Animated.Value(0)).current;
@@ -121,8 +121,8 @@ const NewsTicker = React.memo(function NewsTicker({ segments }: { segments: Tick
 
   return (
     <View style={[tickerStyles.container, {
-      backgroundColor: isDark ? '#161618' : '#F8F6F0',
-      borderBottomColor: isDark ? '#222228' : '#E8E4DA',
+      backgroundColor: colors.bgSecondary,
+      borderBottomColor: colors.border,
     }]}>
       <Animated.View style={[tickerStyles.pillWrap, {
         opacity: pillSlide.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.3, 1] }),
@@ -134,7 +134,7 @@ const NewsTicker = React.memo(function NewsTicker({ segments }: { segments: Tick
           </Text>
         </View>
       </Animated.View>
-      <View style={[tickerStyles.separator, { backgroundColor: isDark ? '#2E2E34' : '#E0DCD0' }]} />
+      <View style={[tickerStyles.separator, { backgroundColor: colors.border }]} />
       <View style={tickerStyles.scrollWrap}>
         <View style={[tickerStyles.scrollHighlight, { backgroundColor: seg.color + (isDark ? '12' : '0A') }]} />
         <Animated.Text
@@ -148,8 +148,8 @@ const NewsTicker = React.memo(function NewsTicker({ segments }: { segments: Tick
         >
           {tickerText}
         </Animated.Text>
-        <View style={[tickerStyles.fadeEdgeLeft, { backgroundColor: isDark ? '#161618' : '#F8F6F0' }]} pointerEvents="none" />
-        <View style={[tickerStyles.fadeEdgeRight, { backgroundColor: isDark ? '#161618' : '#F8F6F0' }]} pointerEvents="none" />
+        <View style={[tickerStyles.fadeEdgeLeft, { backgroundColor: colors.bgSecondary }]} pointerEvents="none" />
+        <View style={[tickerStyles.fadeEdgeRight, { backgroundColor: colors.bgSecondary }]} pointerEvents="none" />
       </View>
     </View>
   );
@@ -162,7 +162,7 @@ const CmdTerminal = React.memo(function CmdTerminal({ lines, isLoading, activeRi
   onResync: () => void;
   onPersonalStats: () => void;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const cursorAnim = useRef(new Animated.Value(0)).current;
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -189,8 +189,8 @@ const CmdTerminal = React.memo(function CmdTerminal({ lines, isLoading, activeRi
     };
   }, [lines.length]);
 
-  const termBg = isDark ? '#0C0C0E' : '#FDFCF8';
-  const termBorder = isDark ? '#1E1E24' : '#E5E1D8';
+  const termBg = colors.terminalBg;
+  const termBorder = colors.border;
 
   const getLineColor = useCallback((line: TerminalLine) => {
     if (line.type === "header") return colors.accent;
@@ -337,7 +337,7 @@ const GuideModal = React.memo(function GuideModal({ visible, onClose }: { visibl
 });
 
 export default function LiveScreen() {
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors, isDark, resolvedMode, toggleTheme } = useTheme();
   const { configured, collectors, todayLog, selectedCollectorName } = useCollection();
 
   const [liveLines, setLiveLines] = useState<TerminalLine[]>([]);
@@ -649,7 +649,10 @@ export default function LiveScreen() {
             activeOpacity={0.7}
             testID="theme-toggle-live"
           >
-            {isDark ? <Sun size={15} color={colors.alertYellow} /> : <Moon size={15} color={colors.textSecondary} />}
+            {resolvedMode === "dark" ? <Moon size={15} color={colors.accent} /> :
+             resolvedMode === "frosted" ? <Snowflake size={15} color={colors.accent} /> :
+             resolvedMode === "tinted" ? <Glasses size={15} color={colors.accent} /> :
+             <Sun size={15} color={colors.alertYellow} />}
           </TouchableOpacity>
           <TouchableOpacity
             style={[liveStyles.iconBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}

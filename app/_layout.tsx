@@ -49,7 +49,7 @@ function pickRandomMessages(count: number): string[] {
 }
 
 function BootSequence({ onComplete }: { onComplete: () => void }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [lines, setLines] = useState<string[]>([]);
   const [phase, setPhase] = useState<"booting" | "ready">("booting");
   const fadeOut = useRef(new Animated.Value(1)).current;
@@ -130,7 +130,7 @@ function BootSequence({ onComplete }: { onComplete: () => void }) {
   return (
     <Animated.View style={[bootStyles.container, { backgroundColor: bgColor, opacity: fadeOut }]}>
       <Animated.View style={[bootStyles.glowOrb, { backgroundColor: accentColor, opacity: orbPulse }]} />
-      <View style={[bootStyles.glowOrb2, { backgroundColor: isDark ? '#5EBD8A' : '#7C3AED', opacity: 0.02 }]} />
+      <View style={[bootStyles.glowOrb2, { backgroundColor: colors.terminalGreen, opacity: 0.02 }]} />
 
       <Animated.View style={[bootStyles.logoWrap, { opacity: logoOpacity, transform: [{ translateY: logoSlide }] }]}>
         <Text style={[bootStyles.logoText, { color: accentColor }]}>TaskFlow</Text>
