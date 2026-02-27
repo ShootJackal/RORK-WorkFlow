@@ -14,17 +14,17 @@ import { useTheme } from "@/providers/ThemeProvider";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const TAB_ORDER = ["index", "live", "stats", "tools"] as const;
+const TAB_ORDER = ["live", "index", "stats", "tools"] as const;
 type TabName = (typeof TAB_ORDER)[number];
 
 const TAB_CONFIG: Record<TabName, { title: string; icon: (color: string, size: number) => React.ReactNode }> = {
-  index: {
-    title: "Collect",
-    icon: (color, size) => <Send size={size} color={color} />,
-  },
   live: {
     title: "LIVE",
     icon: (color, size) => <Radio size={size} color={color} />,
+  },
+  index: {
+    title: "Collect",
+    icon: (color, size) => <Send size={size} color={color} />,
   },
   stats: {
     title: "Stats",
@@ -73,23 +73,35 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
     [state, navigation]
   );
 
-  const BOTTOM_PAD = insets.bottom > 0 ? insets.bottom : 12;
-
-  const fadeBg = isDark ? 'rgba(18,18,20,0.95)' : 'rgba(250,248,243,0.95)';
+  const BOTTOM_PAD = insets.bottom > 0 ? insets.bottom : 14;
 
   return (
     <View style={[barStyles.outerWrap, { paddingBottom: BOTTOM_PAD }]}>
       <View
-        style={[barStyles.gradient, { backgroundColor: fadeBg }]}
+        style={[barStyles.gradientBase, {
+          backgroundColor: isDark ? 'rgba(18,18,20,0)' : 'rgba(248,246,251,0)',
+        }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[barStyles.gradientMid, {
+          backgroundColor: isDark ? 'rgba(18,18,20,0.75)' : 'rgba(248,246,251,0.7)',
+        }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[barStyles.gradientSolid, {
+          backgroundColor: isDark ? 'rgba(18,18,20,0.97)' : 'rgba(248,246,251,0.95)',
+        }]}
         pointerEvents="none"
       />
       <View
         style={[
           barStyles.island,
           {
-            backgroundColor: isDark ? '#1E1E22' : '#FFFFFF',
-            shadowColor: isDark ? '#000' : '#1A1400',
-            borderColor: isDark ? '#2E2E34' : '#E5E1D8',
+            backgroundColor: isDark ? '#1A1A1F' : '#FFFFFF',
+            shadowColor: isDark ? '#7C3AED' : '#2D1B69',
+            borderColor: isDark ? '#2A2A32' : '#E2DCED',
           },
         ]}
       >
@@ -130,7 +142,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
                     backgroundColor: isLive
                       ? colors.complete + "18"
                       : colors.accentSoft,
-                    borderRadius: 12,
+                    borderRadius: 14,
                   },
                 ]}
               >
@@ -178,6 +190,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: colors.textMuted,
       }}
     >
+      <Tabs.Screen name="live" options={{ title: "LIVE" }} />
       <Tabs.Screen
         name="index"
         options={{
@@ -185,7 +198,6 @@ export default function TabLayout() {
           headerShown: false,
         }}
       />
-      <Tabs.Screen name="live" options={{ title: "LIVE" }} />
       <Tabs.Screen name="stats" options={{ title: "Stats" }} />
       <Tabs.Screen name="tools" options={{ title: "Tools" }} />
     </Tabs>
@@ -201,22 +213,36 @@ const barStyles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
   },
-  gradient: {
+  gradientBase: {
     position: "absolute",
     bottom: -10,
     left: 0,
     right: 0,
-    height: 120,
+    height: 140,
+  },
+  gradientMid: {
+    position: "absolute",
+    bottom: -10,
+    left: 0,
+    right: 0,
+    height: 100,
+  },
+  gradientSolid: {
+    position: "absolute",
+    bottom: -10,
+    left: 0,
+    right: 0,
+    height: 70,
   },
   island: {
     flexDirection: "row",
-    borderRadius: 28,
+    borderRadius: 32,
     borderWidth: 1,
-    paddingVertical: 6,
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 28,
-    elevation: 22,
+    paddingVertical: 8,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 32,
+    elevation: 28,
     position: "relative",
     overflow: "hidden",
     width: "100%",
@@ -224,19 +250,19 @@ const barStyles = StyleSheet.create({
   slider: {
     position: "absolute",
     bottom: 0,
-    height: 2.5,
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 2,
+    height: 3,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
   },
   tab: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 6,
-    gap: 3,
+    gap: 4,
   },
   iconWrap: {
-    width: 40,
-    height: 32,
+    width: 42,
+    height: 34,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",

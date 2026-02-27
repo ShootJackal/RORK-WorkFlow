@@ -366,7 +366,7 @@ export default function LiveScreen() {
     const log = todayLogQuery.data ?? todayLog;
     const fallback = log
       .filter(e => e.status === "Partial" || e.remainingHours > 0)
-      .map(e => `${normalizeCollectorName(e.taskName)} (${e.remainingHours}h left)`);
+      .map(e => `${normalizeCollectorName(e.taskName)} (${Number(e.remainingHours).toFixed(2)}h left)`);
     return fallback.length > 0 ? fallback : [];
   }, [recollectionsQuery.data, todayLogQuery.data, todayLog]);
 
@@ -405,11 +405,11 @@ export default function LiveScreen() {
     const statsItems: string[] = [];
     if (stats) {
       statsItems.push(`Completion: ${stats.completionRate.toFixed(0)}%`);
-      statsItems.push(`Hours: ${stats.totalLoggedHours.toFixed(1)}h`);
+      statsItems.push(`Hours: ${stats.totalLoggedHours.toFixed(2)}h`);
       statsItems.push(`Done: ${stats.totalCompleted}`);
       if (stats.topTasks?.length) {
         stats.topTasks.slice(0, 5).forEach((t, i) => {
-          statsItems.push(`#${i + 1} ${t.name} (${t.hours}h)`);
+          statsItems.push(`#${i + 1} ${t.name} (${Number(t.hours).toFixed(2)}h)`);
         });
       }
     } else {
@@ -439,7 +439,7 @@ export default function LiveScreen() {
     lines.push({ id: `mx_r_${ts}`, text: `Active Rigs:        ${mxRigs}`, type: "data", color: colors.textPrimary });
     if (stats) {
       lines.push({ id: `mx_t_${ts}`, text: `Tasks Logged:       ${stats.totalAssigned}`, type: "data", color: colors.mxOrange });
-      lines.push({ id: `mx_h2_${ts}`, text: `Hours Captured:     ${stats.totalLoggedHours.toFixed(1)}h`, type: "data", color: colors.mxOrange });
+      lines.push({ id: `mx_h2_${ts}`, text: `Hours Captured:     ${stats.totalLoggedHours.toFixed(2)}h`, type: "data", color: colors.mxOrange });
       lines.push({ id: `mx_r2_${ts}`, text: `Completion Rate:    ${stats.completionRate.toFixed(1)}%`, type: "data", color: colors.terminalGreen });
     } else {
       lines.push({ id: `mx_w_${ts}`, text: "Awaiting data feed...", type: "label" });
@@ -452,7 +452,7 @@ export default function LiveScreen() {
     lines.push({ id: `sf_r_${ts}`, text: `Active Rigs:        ${sfRigs}`, type: "data", color: colors.textPrimary });
     if (stats) {
       const sfTasks = Math.max(Math.round(stats.totalAssigned * 0.4), 1);
-      const sfHrs = Number((stats.totalLoggedHours * 0.35).toFixed(1));
+      const sfHrs = Number((stats.totalLoggedHours * 0.35).toFixed(2));
       const sfRate = Math.min(stats.completionRate + 5, 100);
       lines.push({ id: `sf_t_${ts}`, text: `Tasks Logged:       ${sfTasks}`, type: "data", color: colors.sfBlue });
       lines.push({ id: `sf_h2_${ts}`, text: `Hours Captured:     ${sfHrs}h`, type: "data", color: colors.sfBlue });
@@ -472,7 +472,7 @@ export default function LiveScreen() {
     if (stats) {
       lines.push({ id: `cb_1_${ts}`, text: `Overall Rate:       ${stats.completionRate.toFixed(1)}%`, type: "data", color: colors.terminalGreen });
       lines.push({ id: `cb_2_${ts}`, text: `Avg Hours/Task:     ${stats.avgHoursPerTask.toFixed(2)}h`, type: "data", color: colors.textPrimary });
-      lines.push({ id: `cb_3_${ts}`, text: `Weekly Hours:       ${stats.weeklyLoggedHours.toFixed(1)}h`, type: "data", color: colors.accentLight });
+      lines.push({ id: `cb_3_${ts}`, text: `Weekly Hours:       ${stats.weeklyLoggedHours.toFixed(2)}h`, type: "data", color: colors.accentLight });
       lines.push({ id: `cb_4_${ts}`, text: `Weekly Completed:   ${stats.weeklyCompleted}`, type: "data", color: colors.terminalGreen });
       lines.push({ id: `cb_5_${ts}`, text: `Total Rigs:         ${totalRigCount} (MX: ${mxRigs} + SF: ${sfRigs})`, type: "data", color: colors.textPrimary });
     } else {
@@ -545,9 +545,9 @@ export default function LiveScreen() {
       { id: `ps_h_${ts}`, text: `PERSONAL STATS: ${normalizeCollectorName(selectedCollectorName)}`, type: "header" },
       { id: `ps_1_${ts}`, text: `Total Assigned:     ${stats.totalAssigned}`, type: "data", color: colors.textPrimary },
       { id: `ps_2_${ts}`, text: `Total Completed:    ${stats.totalCompleted}`, type: "data", color: colors.terminalGreen },
-      { id: `ps_3_${ts}`, text: `Hours Logged:       ${stats.totalLoggedHours.toFixed(1)}h`, type: "data", color: colors.accentLight },
+      { id: `ps_3_${ts}`, text: `Hours Logged:       ${stats.totalLoggedHours.toFixed(2)}h`, type: "data", color: colors.accentLight },
       { id: `ps_4_${ts}`, text: `Completion Rate:    ${stats.completionRate.toFixed(0)}%`, type: "data", color: colors.terminalGreen },
-      { id: `ps_5_${ts}`, text: `Weekly Hours:       ${stats.weeklyLoggedHours.toFixed(1)}h`, type: "data", color: colors.accent },
+      { id: `ps_5_${ts}`, text: `Weekly Hours:       ${stats.weeklyLoggedHours.toFixed(2)}h`, type: "data", color: colors.accent },
       { id: `ps_d_${ts}`, text: "\u2500".repeat(44), type: "divider" },
     ];
     setLiveLines(prev => [...prev, ...personalLines].slice(-50));
@@ -562,7 +562,12 @@ export default function LiveScreen() {
 
   return (
     <View style={[liveStyles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
-      <View style={liveStyles.topBar}>
+      <View style={[liveStyles.topBar, {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      }]}>
         <View style={liveStyles.topBarLeft}>
           <View style={liveStyles.brandRow}>
             <Text style={[liveStyles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
@@ -584,7 +589,15 @@ export default function LiveScreen() {
         </View>
         <View style={liveStyles.topBarRight}>
           <TouchableOpacity
-            style={[liveStyles.iconBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+            style={[liveStyles.iconBtn, {
+              backgroundColor: colors.bgCard,
+              borderColor: colors.border,
+              shadowColor: colors.shadow,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 6,
+              elevation: 3,
+            }]}
             onPress={handleToggleTheme}
             activeOpacity={0.7}
             testID="theme-toggle-live"
@@ -592,7 +605,15 @@ export default function LiveScreen() {
             {isDark ? <Sun size={15} color={colors.alertYellow} /> : <Moon size={15} color={colors.textSecondary} />}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[liveStyles.iconBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+            style={[liveStyles.iconBtn, {
+              backgroundColor: colors.bgCard,
+              borderColor: colors.border,
+              shadowColor: colors.shadow,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 6,
+              elevation: 3,
+            }]}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowGuide(true); }}
             activeOpacity={0.7}
             testID="guide-btn"
@@ -600,7 +621,15 @@ export default function LiveScreen() {
             <BookOpen size={15} color={colors.accent} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[liveStyles.iconBtn, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}
+            style={[liveStyles.iconBtn, {
+              backgroundColor: colors.accentSoft,
+              borderColor: colors.accentDim,
+              shadowColor: colors.accent,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 8,
+              elevation: 4,
+            }]}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/stats' as any); }}
             activeOpacity={0.7}
             testID="ranks-btn"
@@ -654,7 +683,7 @@ const tickerStyles = StyleSheet.create({
 });
 
 const cmdStyles = StyleSheet.create({
-  window: { borderRadius: 12, borderWidth: 1, overflow: "hidden" },
+  window: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   titleBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -724,7 +753,7 @@ const liveStyles = StyleSheet.create({
   },
   topBarLeft: { flex: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brandText: { fontSize: 26, fontWeight: "900" as const, letterSpacing: 5 },
+  brandText: { fontSize: 28, fontWeight: "900" as const, letterSpacing: 6 },
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",

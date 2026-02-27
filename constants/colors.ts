@@ -77,28 +77,28 @@ export interface ThemeColors {
 }
 
 export const LightTheme: ThemeColors = {
-  bg: '#FAF8F3',
-  bgSecondary: '#F3F0E8',
+  bg: '#F8F6FB',
+  bgSecondary: '#F0EDF6',
   bgCard: '#FFFFFF',
-  bgInput: '#F5F2EB',
-  bgElevated: '#EBE8E0',
-  border: '#E5E1D8',
-  borderLight: '#EDEAD2',
+  bgInput: '#F3F0F8',
+  bgElevated: '#E8E4F0',
+  border: '#E2DCED',
+  borderLight: '#EBE6F3',
   borderFocus: '#8B6FC0',
 
-  textPrimary: '#1C1917',
-  textSecondary: '#57534E',
-  textMuted: '#A8A29E',
+  textPrimary: '#1C1926',
+  textSecondary: '#524D5E',
+  textMuted: '#9B95A8',
 
   accent: '#7C3AED',
   accentLight: '#9461F5',
-  accentDim: '#E2D9F3',
-  accentSoft: '#F5F0FF',
+  accentDim: '#DDD4F2',
+  accentSoft: '#F0ECFF',
 
   assign: '#7C3AED',
-  assignBg: '#F5F0FF',
+  assignBg: '#F0ECFF',
   complete: '#2D8A56',
-  completeBg: '#E8F5EE',
+  completeBg: '#E6F5ED',
   cancel: '#C53030',
   cancelBg: '#FDE8E8',
 
@@ -110,34 +110,34 @@ export const LightTheme: ThemeColors = {
   black: '#000000',
 
   slack: '#5B3A6B',
-  slackBg: '#F5EFF8',
+  slackBg: '#F2EAFA',
   hubstaff: '#2D8A56',
-  hubstaffBg: '#E8F5EE',
+  hubstaffBg: '#E6F5ED',
   airtable: '#B8860B',
   airtableBg: '#FEF5E5',
   sheets: '#2D8A56',
-  sheetsBg: '#E8F5EE',
+  sheetsBg: '#E6F5ED',
 
   tabBar: '#FFFFFF',
   tabBarBorder: 'transparent',
 
-  skeleton: '#E5E1D8',
-  overlay: 'rgba(0,0,0,0.18)',
+  skeleton: '#E2DCED',
+  overlay: 'rgba(0,0,0,0.22)',
 
-  shadow: '#1A1400',
-  shadowCard: 'rgba(26, 20, 0, 0.06)',
+  shadow: '#2D1B69',
+  shadowCard: 'rgba(45, 27, 105, 0.08)',
 
   terminal: '#7C3AED',
-  terminalBg: '#FAF8F3',
+  terminalBg: '#F8F6FB',
   terminalGreen: '#2D8A56',
-  terminalDim: '#A8A29E',
+  terminalDim: '#9B95A8',
 
   alertYellow: '#A67C00',
   alertYellowBg: '#FFF8E1',
   recollectRed: '#C53030',
   recollectRedBg: '#FFF0F0',
   statsGreen: '#2D8A56',
-  statsGreenBg: '#E8F8EE',
+  statsGreenBg: '#E6F8ED',
 
   mxOrange: '#C47A3A',
   mxOrangeBg: '#FFF3E8',
@@ -147,11 +147,11 @@ export const LightTheme: ThemeColors = {
   gold: '#B8860B',
   goldBg: '#FFF8E1',
   silver: '#6B7280',
-  silverBg: '#F3F4F6',
+  silverBg: '#F1F0F6',
   bronze: '#A0522D',
   bronzeBg: '#FDF0E8',
 
-  cardDepth: 'rgba(0,0,0,0.03)',
+  cardDepth: 'rgba(124,58,237,0.03)',
 };
 
 export const DarkTheme: ThemeColors = {
@@ -203,7 +203,7 @@ export const DarkTheme: ThemeColors = {
   overlay: 'rgba(0,0,0,0.6)',
 
   shadow: '#000000',
-  shadowCard: 'rgba(0, 0, 0, 0.35)',
+  shadowCard: 'rgba(0, 0, 0, 0.4)',
 
   terminal: '#A78BFA',
   terminalBg: '#121214',

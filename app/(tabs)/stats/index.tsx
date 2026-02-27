@@ -97,7 +97,7 @@ function LeaderboardRow({ entry, index, isCurrentUser, colors }: { entry: Leader
           </View>
         </View>
         <View style={lbStyles.statsRow}>
-          <Text style={[lbStyles.statVal, { color: colors.accent }]}>{entry.hoursLogged.toFixed(1)}h</Text>
+          <Text style={[lbStyles.statVal, { color: colors.accent }]}>{entry.hoursLogged.toFixed(2)}h</Text>
           <Text style={[lbStyles.statSep, { color: colors.border }]}>|</Text>
           <Text style={[lbStyles.statVal, { color: colors.complete }]}>{entry.tasksCompleted} done</Text>
           <Text style={[lbStyles.statSep, { color: colors.border }]}>|</Text>
@@ -142,12 +142,12 @@ function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: 
       </View>
       <View style={compStyles.statsWrap}>
         <View style={compStyles.statCol}>
-          <Text style={[compStyles.statValue, { color: colors.mxOrange }]}>{mxHours.toFixed(1)}h</Text>
+          <Text style={[compStyles.statValue, { color: colors.mxOrange }]}>{mxHours.toFixed(2)}h</Text>
           <Text style={[compStyles.statSub, { color: colors.textMuted }]}>MX Hours</Text>
         </View>
         <View style={[compStyles.divider, { backgroundColor: colors.border }]} />
         <View style={compStyles.statCol}>
-          <Text style={[compStyles.statValue, { color: colors.sfBlue }]}>{sfHours.toFixed(1)}h</Text>
+          <Text style={[compStyles.statValue, { color: colors.sfBlue }]}>{sfHours.toFixed(2)}h</Text>
           <Text style={[compStyles.statSub, { color: colors.textMuted }]}>SF Hours</Text>
         </View>
         <View style={[compStyles.divider, { backgroundColor: colors.border }]} />
@@ -167,8 +167,8 @@ function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: 
 
 const compStyles = StyleSheet.create({
   card: {
-    borderRadius: 16, padding: 14, borderWidth: 1, marginBottom: 10,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
+    borderRadius: 20, padding: 16, borderWidth: 1, marginBottom: 12,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
   },
   title: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 1.2, marginBottom: 10 },
   barWrap: { flexDirection: "row", height: 24, borderRadius: 6, overflow: "hidden", marginBottom: 12 },
@@ -273,7 +273,7 @@ export default function StatsScreen() {
   }, [statsQuery, leaderboardQuery, queryClient, selectedCollectorName]);
 
   const stats = statsQuery.data;
-  const cardShadow = { shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 };
+  const cardShadow = { shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 6 };
 
   const tabItems: { key: LeaderboardTab; label: string; color: string }[] = [
     { key: "combined", label: "All", color: colors.accent },
@@ -307,7 +307,10 @@ export default function StatsScreen() {
     >
       <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
         <View>
-          <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>STATS</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>STATS</Text>
+            <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
+          </View>
           <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>
             {normalizeCollectorName(selectedCollector.name)}
           </Text>
@@ -328,7 +331,7 @@ export default function StatsScreen() {
       <View style={styles.heroGrid}>
         <HeroStat label="Assigned" value={String(localStats.total)} icon={<Target size={18} color={colors.accent} />} color={colors.accent} index={0} />
         <HeroStat label="Completed" value={String(localStats.completed)} icon={<CheckCircle size={18} color={colors.complete} />} color={colors.complete} index={1} />
-        <HeroStat label="Uploaded" value={`${localStats.totalLogged.toFixed(1)}h`} icon={<Upload size={18} color={colors.statusPending} />} color={colors.statusPending} index={2} />
+        <HeroStat label="Uploaded" value={`${localStats.totalLogged.toFixed(2)}h`} icon={<Upload size={18} color={colors.statusPending} />} color={colors.statusPending} index={2} />
         <HeroStat label="Active" value={String(localStats.active)} icon={<TrendingUp size={18} color={colors.accentLight} />} color={colors.accentLight} index={3} />
       </View>
 
@@ -341,7 +344,7 @@ export default function StatsScreen() {
           <View style={[styles.weekCard, { backgroundColor: colors.bgCard, borderColor: colors.border, ...cardShadow }]}>
             <View style={styles.weekRow}>
               <View style={styles.weekItem}>
-                <Text style={[styles.weekVal, { color: colors.accent }]}>{stats.weeklyLoggedHours.toFixed(1)}h</Text>
+                <Text style={[styles.weekVal, { color: colors.accent }]}>{stats.weeklyLoggedHours.toFixed(2)}h</Text>
                 <Text style={[styles.weekLbl, { color: colors.textMuted }]}>Hours</Text>
               </View>
               <View style={[styles.weekSep, { backgroundColor: colors.border }]} />
@@ -351,7 +354,7 @@ export default function StatsScreen() {
               </View>
               <View style={[styles.weekSep, { backgroundColor: colors.border }]} />
               <View style={styles.weekItem}>
-                <Text style={[styles.weekVal, { color: colors.textPrimary }]}>{stats.avgHoursPerTask.toFixed(1)}h</Text>
+                <Text style={[styles.weekVal, { color: colors.textPrimary }]}>{stats.avgHoursPerTask.toFixed(2)}h</Text>
                 <Text style={[styles.weekLbl, { color: colors.textMuted }]}>Avg/Task</Text>
               </View>
               <View style={[styles.weekSep, { backgroundColor: colors.border }]} />
@@ -494,7 +497,7 @@ export default function StatsScreen() {
               </View>
               <View style={[styles.allTimeSep, { backgroundColor: colors.border }]} />
               <View style={styles.allTimeItem}>
-                <Text style={[styles.allTimeVal, { color: colors.accent }]}>{stats.totalLoggedHours.toFixed(0)}h</Text>
+                <Text style={[styles.allTimeVal, { color: colors.accent }]}>{stats.totalLoggedHours.toFixed(2)}h</Text>
                 <Text style={[styles.allTimeLbl, { color: colors.textMuted }]}>Hours</Text>
               </View>
               <View style={[styles.allTimeSep, { backgroundColor: colors.border }]} />
@@ -519,7 +522,7 @@ export default function StatsScreen() {
                   <View key={`task_${idx}`} style={[styles.topTaskRow, { borderBottomColor: colors.border }, idx === Math.min(stats.topTasks.length - 1, 7) && styles.topTaskLast]}>
                     <View style={[styles.topTaskDot, { backgroundColor: dotColor }]} />
                     <Text style={[styles.topTaskName, { color: colors.textSecondary }]} numberOfLines={1}>{task.name}</Text>
-                    <Text style={[styles.topTaskHours, { color: dotColor }]}>{task.hours}h</Text>
+                    <Text style={[styles.topTaskHours, { color: dotColor }]}>{Number(task.hours).toFixed(2)}h</Text>
                   </View>
                 );
               })}
@@ -545,7 +548,9 @@ const styles = StyleSheet.create({
     width: 28, height: 28,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-  brandText: { fontSize: 22, fontWeight: "900" as const, letterSpacing: 4 },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
+  brandText: { fontSize: 24, fontWeight: "900" as const, letterSpacing: 5 },
   brandSub: { fontSize: 9, letterSpacing: 1, marginTop: 2 },
   rigBadge: { fontSize: 9, letterSpacing: 0.5 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 },
@@ -553,13 +558,13 @@ const styles = StyleSheet.create({
   sectionLabelMuted: { fontSize: 10, letterSpacing: 1.2, fontWeight: "600" as const },
   heroGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
   heroCard: {
-    flex: 1, minWidth: "44%" as unknown as number, borderRadius: 16, padding: 14, borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
+    flex: 1, minWidth: "44%" as unknown as number, borderRadius: 20, padding: 16, borderWidth: 1,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
   },
   heroIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 10 },
   heroValue: { fontSize: 24, letterSpacing: -0.5, fontWeight: "700" as const },
   heroLabel: { fontSize: 11, marginTop: 2, fontWeight: "500" as const },
-  weekCard: { borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: 1 },
+  weekCard: { borderRadius: 20, padding: 18, marginBottom: 12, borderWidth: 1 },
   weekRow: { flexDirection: "row", alignItems: "center" },
   weekSep: { width: 1, height: 28 },
   weekItem: { flex: 1, alignItems: "center" },
@@ -573,13 +578,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "transparent",
   },
   lbTabText: { fontSize: 12, letterSpacing: 0.3 },
-  leaderboardCard: { borderRadius: 16, padding: 12, marginBottom: 12, borderWidth: 1 },
+  leaderboardCard: { borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1 },
   lbHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 4, paddingBottom: 8, marginBottom: 4 },
   lbHeaderText: { fontSize: 10, fontWeight: "600" as const, letterSpacing: 0.5, textTransform: "uppercase" },
   lbEmpty: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 12, alignItems: "center" },
   lbEmptyText: { fontSize: 13 },
   lbEmptyRetry: { fontSize: 12, marginTop: 6, fontWeight: "600" as const },
-  recentCard: { borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1 },
+  recentCard: { borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1 },
   recentTitle: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 1.2, marginBottom: 10 },
   recentRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, borderBottomWidth: 1, gap: 8 },
   recentRowLast: { borderBottomWidth: 0 },
@@ -590,7 +595,7 @@ const styles = StyleSheet.create({
   recentTasks: { fontSize: 12, fontWeight: "600" as const },
   loadingWrap: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 20 },
   loadingText: { fontSize: 13 },
-  allTimeCard: { borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1 },
+  allTimeCard: { borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1 },
   allTimeGrid: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   allTimeItem: { flex: 1, alignItems: "center" },
   allTimeSep: { width: 1, height: 24 },
@@ -598,7 +603,7 @@ const styles = StyleSheet.create({
   allTimeLbl: { fontSize: 10, marginTop: 3 },
   allTimeDivider: { height: 1, marginBottom: 10 },
   allTimeSub: { fontSize: 10, marginTop: 8, textAlign: "center" },
-  topTasksCard: { borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1 },
+  topTasksCard: { borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1 },
   topTasksTitle: { fontSize: 10, letterSpacing: 1.1, textTransform: "uppercase", marginBottom: 10, fontWeight: "600" as const },
   topTaskRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, borderBottomWidth: 1, gap: 10 },
   topTaskLast: { borderBottomWidth: 0 },
