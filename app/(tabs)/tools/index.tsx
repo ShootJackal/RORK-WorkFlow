@@ -35,6 +35,7 @@ import {
   Timer,
   Shield,
   Activity,
+  Target,
   FileText,
   ChevronDown,
   ClipboardList,
@@ -49,9 +50,9 @@ import { useTheme, THEME_META, type ThemeMode } from "@/providers/ThemeProvider"
 import { useCollection } from "@/providers/CollectionProvider";
 import { DesignTokens } from "@/constants/colors";
 import ScreenContainer from "@/components/ScreenContainer";
-import { useQuery } from "@tanstack/react-query";
-import { fetchAdminDashboardData, fetchTaskActualsData, clearAllCaches } from "@/services/googleSheets";
-import { AdminDashboardData, CollectorSummary, TaskActualRow } from "@/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchAdminDashboardData, fetchTaskActualsData, fetchFullLog, fetchLeaderboard, clearAllCaches } from "@/services/googleSheets";
+import { AdminDashboardData, CollectorSummary, TaskActualRow, FullLogEntry, LeaderboardEntry } from "@/types";
 import SelectPicker from "@/components/SelectPicker";
 
 const FONT_MONO = DesignTokens.fontMono;
@@ -576,6 +577,261 @@ const adminStyles = StyleSheet.create({
   loadingText: { fontSize: 12 },
 });
 
+function AdminToolsPanel({ colors }: { colors: ReturnType<typeof useTheme>["colors"] }) {
+  const { configured } = useCollection();
+  const queryClient = useQueryClient();
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  const fullLogQuery = useQuery<FullLogEntry[]>({
+    queryKey: ["adminFullLog"],
+    queryFn: () => fetchFullLog(),
+    enabled: configured,
+    staleTime: 60000,
+    retry: 1,
+  });
+
+  const taskActualsQuery = useQuery<TaskActualRow[]>({
+    queryKey: ["adminTaskActuals"],
+    queryFn: fetchTaskActualsData,
+    enabled: configured,
+    staleTime: 60000,
+    retry: 1,
+  });
+
+  const leaderboardQuery = useQuery<LeaderboardEntry[]>({
+    queryKey: ["adminLeaderboard"],
+    queryFn: () => fetchLeaderboard("thisWeek"),
+    enabled: configured,
+    staleTime: 120000,
+    retry: 1,
+  });
+
+  const recentActivity = useMemo(() => {
+    const entries = fullLogQuery.data ?? [];
+    return entries.slice(0, 15);
+  }, [fullLogQuery.data]);
+
+  const taskProgress = useMemo(() => {
+    const tasks = taskActualsQuery.data ?? [];
+    return tasks
+      .filter(t => {
+        const st = normalizeTaskStatus(t.status);
+        return !COMPLETED_TASK_STATUSES.has(st);
+      })
+      .sort((a, b) => (Number(b.remainingHours) || 0) - (Number(a.remainingHours) || 0))
+      .slice(0, 12);
+  }, [taskActualsQuery.data]);
+
+  const teamPerformance = useMemo(() => {
+    const entries = leaderboardQuery.data ?? [];
+    if (entries.length === 0) return null;
+    const totalHours = entries.reduce((s, e) => s + e.hoursLogged, 0);
+    const totalCompleted = entries.reduce((s, e) => s + e.tasksCompleted, 0);
+    const avgRate = entries.length > 0 ? entries.reduce((s, e) => s + e.completionRate, 0) / entries.length : 0;
+    const mxEntries = entries.filter(e => e.region === "MX");
+    const sfEntries = entries.filter(e => e.region === "SF");
+    const mxHours = mxEntries.reduce((s, e) => s + e.hoursLogged, 0);
+    const sfHours = sfEntries.reduce((s, e) => s + e.hoursLogged, 0);
+    return { totalHours, totalCompleted, avgRate, mxHours, sfHours, mxCount: mxEntries.length, sfCount: sfEntries.length, total: entries.length };
+  }, [leaderboardQuery.data]);
+
+  const toggleSection = useCallback((section: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setExpandedSection(prev => prev === section ? null : section);
+  }, []);
+
+  const handleForceResync = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await clearAllCaches();
+    queryClient.invalidateQueries();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [queryClient]);
+
+  const getStatusIcon = useCallback((status: string) => {
+    const st = normalizeTaskStatus(status);
+    if (COMPLETED_TASK_STATUSES.has(st)) return <Check size={10} color={colors.complete} />;
+    if (RECOLLECT_TASK_STATUSES.has(st)) return <AlertTriangle size={10} color={colors.cancel} />;
+    return <Activity size={10} color={colors.accent} />;
+  }, [colors]);
+
+  return (
+    <View style={atStyles.container}>
+      <TouchableOpacity
+        style={[atStyles.toolBtn, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}
+        onPress={handleForceResync}
+        activeOpacity={0.7}
+      >
+        <RotateCcw size={13} color={colors.accent} />
+        <Text style={[atStyles.toolBtnText, { color: colors.accent }]}>Force Resync All Data</Text>
+      </TouchableOpacity>
+
+      {teamPerformance && (
+        <View style={[atStyles.card, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+          <View style={atStyles.cardHeader}>
+            <BarChart3 size={12} color={colors.accent} />
+            <Text style={[atStyles.cardTitle, { color: colors.accent }]}>TEAM PERFORMANCE</Text>
+          </View>
+          <View style={atStyles.perfGrid}>
+            <View style={[atStyles.perfItem, { backgroundColor: colors.bgInput }]}>
+              <Text style={[atStyles.perfValue, { color: colors.accent }]}>{teamPerformance.totalHours.toFixed(1)}h</Text>
+              <Text style={[atStyles.perfLabel, { color: colors.textMuted }]}>Total Hours</Text>
+            </View>
+            <View style={[atStyles.perfItem, { backgroundColor: colors.bgInput }]}>
+              <Text style={[atStyles.perfValue, { color: colors.complete }]}>{teamPerformance.totalCompleted}</Text>
+              <Text style={[atStyles.perfLabel, { color: colors.textMuted }]}>Completed</Text>
+            </View>
+            <View style={[atStyles.perfItem, { backgroundColor: colors.bgInput }]}>
+              <Text style={[atStyles.perfValue, { color: colors.textPrimary }]}>{teamPerformance.avgRate.toFixed(0)}%</Text>
+              <Text style={[atStyles.perfLabel, { color: colors.textMuted }]}>Avg Rate</Text>
+            </View>
+            <View style={[atStyles.perfItem, { backgroundColor: colors.bgInput }]}>
+              <Text style={[atStyles.perfValue, { color: colors.textPrimary }]}>{teamPerformance.total}</Text>
+              <Text style={[atStyles.perfLabel, { color: colors.textMuted }]}>Collectors</Text>
+            </View>
+          </View>
+          <View style={[atStyles.regionBar, { marginTop: DesignTokens.spacing.sm }]}>
+            <View style={[atStyles.regionSegment, { backgroundColor: colors.mxOrange, flex: Math.max(teamPerformance.mxHours, 1) }]}>
+              <Text style={atStyles.regionBarLabel}>MX</Text>
+            </View>
+            <View style={[atStyles.regionSegment, { backgroundColor: colors.sfBlue, flex: Math.max(teamPerformance.sfHours, 1) }]}>
+              <Text style={atStyles.regionBarLabel}>SF</Text>
+            </View>
+          </View>
+          <View style={atStyles.regionDetail}>
+            <Text style={[atStyles.regionText, { color: colors.mxOrange }]}>MX: {teamPerformance.mxHours.toFixed(1)}h ({teamPerformance.mxCount})</Text>
+            <Text style={[atStyles.regionText, { color: colors.sfBlue }]}>SF: {teamPerformance.sfHours.toFixed(1)}h ({teamPerformance.sfCount})</Text>
+          </View>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[atStyles.card, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+        onPress={() => toggleSection("tasks")}
+        activeOpacity={0.8}
+      >
+        <View style={atStyles.cardHeader}>
+          <Target size={12} color={colors.mxOrange} />
+          <Text style={[atStyles.cardTitle, { color: colors.mxOrange }]}>ACTIVE TASK PROGRESS</Text>
+          <ChevronDown size={14} color={colors.textMuted} style={expandedSection === "tasks" ? { transform: [{ rotate: "180deg" }] } : undefined} />
+        </View>
+        {taskActualsQuery.isLoading && (
+          <ActivityIndicator size="small" color={colors.accent} />
+        )}
+        {expandedSection === "tasks" && taskProgress.map((task, idx) => {
+          const collected = Number(task.collectedHours) || 0;
+          const good = Number(task.goodHours) || 0;
+          const remaining = Number(task.remainingHours) || 0;
+          const total = collected + remaining;
+          const pct = total > 0 ? Math.min(collected / total, 1) : 0;
+          const isRecollect = normalizeTaskStatus(task.status) === "RECOLLECT";
+          return (
+            <View key={`tp_${idx}`} style={[atStyles.taskRow, { borderTopColor: colors.border }]}>
+              <View style={atStyles.taskInfo}>
+                {getStatusIcon(task.status)}
+                <Text style={[atStyles.taskName, { color: colors.textPrimary }]} numberOfLines={1}>{task.taskName}</Text>
+              </View>
+              <View style={[atStyles.taskBar, { backgroundColor: colors.bgInput }]}>
+                <View style={[atStyles.taskBarFill, {
+                  backgroundColor: isRecollect ? colors.cancel : colors.complete,
+                  width: `${Math.round(pct * 100)}%` as any,
+                }]} />
+              </View>
+              <View style={atStyles.taskMeta}>
+                <Text style={[atStyles.taskHours, { color: isRecollect ? colors.cancel : colors.accent }]}>
+                  {collected.toFixed(1)}h / {total.toFixed(1)}h
+                </Text>
+                {good > 0 && (
+                  <Text style={[atStyles.taskGood, { color: colors.complete }]}>{good.toFixed(1)}h good</Text>
+                )}
+              </View>
+            </View>
+          );
+        })}
+        {expandedSection !== "tasks" && taskProgress.length > 0 && (
+          <Text style={[atStyles.expandHint, { color: colors.textMuted }]}>{taskProgress.length} active tasks — tap to expand</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[atStyles.card, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+        onPress={() => toggleSection("activity")}
+        activeOpacity={0.8}
+      >
+        <View style={atStyles.cardHeader}>
+          <Clock size={12} color={colors.statsGreen} />
+          <Text style={[atStyles.cardTitle, { color: colors.statsGreen }]}>RECENT ACTIVITY</Text>
+          <ChevronDown size={14} color={colors.textMuted} style={expandedSection === "activity" ? { transform: [{ rotate: "180deg" }] } : undefined} />
+        </View>
+        {fullLogQuery.isLoading && (
+          <ActivityIndicator size="small" color={colors.accent} />
+        )}
+        {expandedSection === "activity" && recentActivity.map((entry, idx) => {
+          const statusColor = entry.status === "Completed" ? colors.complete
+            : entry.status === "Canceled" ? colors.cancel
+            : colors.accent;
+          return (
+            <View key={`ra_${idx}`} style={[atStyles.activityRow, { borderTopColor: colors.border }]}>
+              <View style={[atStyles.activityDot, { backgroundColor: statusColor }]} />
+              <View style={atStyles.activityContent}>
+                <Text style={[atStyles.activityCollector, { color: colors.textPrimary }]} numberOfLines={1}>{entry.collector}</Text>
+                <Text style={[atStyles.activityTask, { color: colors.textSecondary }]} numberOfLines={1}>{entry.taskName}</Text>
+              </View>
+              <View style={atStyles.activityRight}>
+                <Text style={[atStyles.activityHours, { color: statusColor }]}>{Number(entry.loggedHours).toFixed(2)}h</Text>
+                <Text style={[atStyles.activityStatus, { color: colors.textMuted }]}>{entry.status}</Text>
+              </View>
+            </View>
+          );
+        })}
+        {expandedSection !== "activity" && recentActivity.length > 0 && (
+          <Text style={[atStyles.expandHint, { color: colors.textMuted }]}>{recentActivity.length} recent entries — tap to expand</Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const atStyles = StyleSheet.create({
+  container: { gap: DesignTokens.spacing.sm },
+  toolBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+    paddingVertical: 10, borderRadius: DesignTokens.radius.md, borderWidth: 1, marginBottom: 4,
+  },
+  toolBtnText: { fontSize: 12, fontWeight: "600" as const, letterSpacing: 0.3 },
+  card: {
+    borderRadius: DesignTokens.radius.xl, borderWidth: 1, padding: DesignTokens.spacing.lg,
+    ...DesignTokens.shadow.card,
+  },
+  cardHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: DesignTokens.spacing.sm },
+  cardTitle: { fontSize: 10, fontWeight: "700" as const, letterSpacing: 1.2, flex: 1 },
+  perfGrid: { flexDirection: "row", gap: 6 },
+  perfItem: { flex: 1, borderRadius: DesignTokens.radius.sm, padding: DesignTokens.spacing.sm, alignItems: "center" },
+  perfValue: { fontSize: 16, fontWeight: "700" as const },
+  perfLabel: { fontSize: 8, fontWeight: "500" as const, marginTop: 2, letterSpacing: 0.3 },
+  regionBar: { flexDirection: "row", height: 22, borderRadius: DesignTokens.radius.xs, overflow: "hidden" },
+  regionSegment: { justifyContent: "center", alignItems: "center" },
+  regionBarLabel: { color: "#fff", fontSize: 9, fontWeight: "800" as const, letterSpacing: 0.5 },
+  regionDetail: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
+  regionText: { fontSize: 10, fontWeight: "600" as const },
+  taskRow: { borderTopWidth: 1, paddingTop: DesignTokens.spacing.sm, marginTop: DesignTokens.spacing.sm },
+  taskInfo: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 },
+  taskName: { fontSize: 12, fontWeight: "500" as const, flex: 1 },
+  taskBar: { height: 4, borderRadius: 2, overflow: "hidden", marginBottom: 4 },
+  taskBarFill: { height: 4, borderRadius: 2 },
+  taskMeta: { flexDirection: "row", alignItems: "center", gap: DesignTokens.spacing.sm },
+  taskHours: { fontSize: 10, fontWeight: "600" as const },
+  taskGood: { fontSize: 10, fontWeight: "500" as const },
+  activityRow: { flexDirection: "row", alignItems: "center", borderTopWidth: 1, paddingTop: DesignTokens.spacing.sm, marginTop: DesignTokens.spacing.sm, gap: DesignTokens.spacing.sm },
+  activityDot: { width: 6, height: 6, borderRadius: 3 },
+  activityContent: { flex: 1 },
+  activityCollector: { fontSize: 12, fontWeight: "600" as const },
+  activityTask: { fontSize: 10, marginTop: 1 },
+  activityRight: { alignItems: "flex-end" },
+  activityHours: { fontSize: 12, fontWeight: "700" as const },
+  activityStatus: { fontSize: 9, marginTop: 1 },
+  expandHint: { fontSize: 11, textAlign: "center", marginTop: DesignTokens.spacing.xs },
+});
+
 function QuickCard({ title, subtitle, icon, iconBg, onPress, testID, colors }: {
   title: string; subtitle: string; icon: React.ReactNode; iconBg: string;
   onPress: () => void; testID: string; colors: ReturnType<typeof useTheme>["colors"];
@@ -855,6 +1111,14 @@ export default function ToolsScreen() {
             <View style={styles.sectionGap} />
             <SectionHeader label={isAdmin ? "Admin Dashboard" : "System Overview"} icon={<Shield size={11} color={colors.textMuted} />} />
             <AdminOverview colors={colors} isAdmin={isAdmin} />
+          </>
+        )}
+
+        {configured && isAdmin && (
+          <>
+            <View style={styles.sectionGap} />
+            <SectionHeader label="Admin Tools" icon={<Activity size={11} color={colors.textMuted} />} />
+            <AdminToolsPanel colors={colors} />
           </>
         )}
 
