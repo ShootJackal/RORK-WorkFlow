@@ -166,11 +166,11 @@ function AssignmentLogView({ collectorName, configured }: { collectorName: strin
               </Text>
             ) : null}
             <Text style={[viewStyles.metaText, { color: colors.textSecondary }]}>
-              {entry.loggedHours}h / {entry.plannedHours}h
+              {Number(entry.loggedHours).toFixed(2)}h / {Number(entry.plannedHours).toFixed(2)}h
             </Text>
             {entry.remainingHours > 0 && (
               <Text style={[viewStyles.metaText, { color: colors.statusPending }]}>
-                {entry.remainingHours}h left
+                {Number(entry.remainingHours).toFixed(2)}h left
               </Text>
             )}
           </View>
@@ -283,15 +283,15 @@ function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; col
         <StatusBadge status={task.status} colors={colors} />
       </View>
       <View style={viewStyles.taskStats}>
-        <StatChip label="Collected" value={`${task.collectedHours}h`} color={colors.accent} />
-        <StatChip label="Good" value={`${task.goodHours}h`} color={colors.complete} />
-        <StatChip label="Remaining" value={`${task.remainingHours}h`} color={task.remainingHours > 0 ? colors.statusPending : colors.textMuted} />
+        <StatChip label="Collected" value={`${Number(task.collectedHours).toFixed(2)}h`} color={colors.accent} />
+        <StatChip label="Good" value={`${Number(task.goodHours).toFixed(2)}h`} color={colors.complete} />
+        <StatChip label="Remaining" value={`${Number(task.remainingHours).toFixed(2)}h`} color={task.remainingHours > 0 ? colors.statusPending : colors.textMuted} />
       </View>
       {showRecollectTime && isRecollect && (
         <View style={[viewStyles.recollectInfo, { backgroundColor: colors.cancelBg, borderColor: colors.cancel + '20' }]}>
           <Clock size={11} color={colors.cancel} />
           <Text style={[viewStyles.recollectInfoText, { color: colors.cancel }]}>
-            Recollection needed: {recollectNeeded > 0 ? `${recollectNeeded}h remaining` : `${goodGap.toFixed(1)}h good data gap`}
+            Recollection needed: {recollectNeeded > 0 ? `${Number(recollectNeeded).toFixed(2)}h remaining` : `${goodGap.toFixed(2)}h good data gap`}
           </Text>
         </View>
       )}

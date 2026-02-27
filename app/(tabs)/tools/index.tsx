@@ -424,7 +424,7 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
               ALL COLLECTORS ({data.totalCollectors ?? data.collectorSummary.length})
             </Text>
             <Text style={[adminStyles.totalHours, { color: colors.complete }]}>
-              {(data.totalHoursUploaded ?? 0).toFixed(1)}h total
+              {(data.totalHoursUploaded ?? 0).toFixed(2)}h total
             </Text>
           </View>
           {data.collectorSummary.map((c: CollectorSummary, idx: number) => (
@@ -434,7 +434,7 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
                 <Text style={[adminStyles.collectorRig, { color: colors.textMuted }]}>{c.rig}</Text>
               </View>
               <View style={adminStyles.collectorStats}>
-                <Text style={[adminStyles.collectorHours, { color: colors.accent }]}>{c.hoursUploaded.toFixed(1)}h</Text>
+                <Text style={[adminStyles.collectorHours, { color: colors.accent }]}>{c.hoursUploaded.toFixed(2)}h</Text>
                 {c.rating ? (
                   <View style={adminStyles.ratingRow}>
                     <Star size={9} color={colors.gold} />
@@ -455,7 +455,7 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
           {data.taskRequirements.slice(0, 10).map((req, idx) => (
             <View key={idx} style={[adminStyles.reqRow, { borderBottomColor: colors.border }]}>
               <Text style={[adminStyles.reqName, { color: colors.textSecondary }]} numberOfLines={1}>{req.taskName}</Text>
-              <Text style={[adminStyles.reqHours, { color: colors.mxOrange }]}>{req.requiredGoodHours}h req</Text>
+              <Text style={[adminStyles.reqHours, { color: colors.mxOrange }]}>{Number(req.requiredGoodHours).toFixed(2)}h req</Text>
             </View>
           ))}
           {data.taskRequirements.length > 10 && (

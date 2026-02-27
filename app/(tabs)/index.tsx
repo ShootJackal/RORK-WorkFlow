@@ -59,11 +59,11 @@ function LogEntryRow({ entry, statusColor, colors, isLast }: {
               </Text>
             </View>
             <Text style={[logStyles.hours, { color: colors.textMuted }]}>
-              {entry.loggedHours}h / {entry.plannedHours}h
+              {Number(entry.loggedHours).toFixed(2)}h / {Number(entry.plannedHours).toFixed(2)}h
             </Text>
             {entry.remainingHours > 0 && (
               <Text style={[logStyles.remaining, { color: colors.statusPending }]}>
-                {entry.remainingHours}h left
+                {Number(entry.remainingHours).toFixed(2)}h left
               </Text>
             )}
           </View>
@@ -478,7 +478,7 @@ export default function DashboardScreen() {
                   </Text>
                   <Text style={[styles.logStatDivider, { color: colors.border }]}>|</Text>
                   <Text style={[styles.logStatText, { color: colors.accent }]}>
-                    {todayStats.totalLogged.toFixed(1)}h
+                    {todayStats.totalLogged.toFixed(2)}h
                   </Text>
                 </View>
               </View>

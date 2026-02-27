@@ -97,7 +97,7 @@ function LeaderboardRow({ entry, index, isCurrentUser, colors }: { entry: Leader
           </View>
         </View>
         <View style={lbStyles.statsRow}>
-          <Text style={[lbStyles.statVal, { color: colors.accent }]}>{entry.hoursLogged.toFixed(1)}h</Text>
+          <Text style={[lbStyles.statVal, { color: colors.accent }]}>{entry.hoursLogged.toFixed(2)}h</Text>
           <Text style={[lbStyles.statSep, { color: colors.border }]}>|</Text>
           <Text style={[lbStyles.statVal, { color: colors.complete }]}>{entry.tasksCompleted} done</Text>
           <Text style={[lbStyles.statSep, { color: colors.border }]}>|</Text>
@@ -142,12 +142,12 @@ function ComparisonCard({ mxHours, sfHours, mxCompleted, sfCompleted, colors }: 
       </View>
       <View style={compStyles.statsWrap}>
         <View style={compStyles.statCol}>
-          <Text style={[compStyles.statValue, { color: colors.mxOrange }]}>{mxHours.toFixed(1)}h</Text>
+          <Text style={[compStyles.statValue, { color: colors.mxOrange }]}>{mxHours.toFixed(2)}h</Text>
           <Text style={[compStyles.statSub, { color: colors.textMuted }]}>MX Hours</Text>
         </View>
         <View style={[compStyles.divider, { backgroundColor: colors.border }]} />
         <View style={compStyles.statCol}>
-          <Text style={[compStyles.statValue, { color: colors.sfBlue }]}>{sfHours.toFixed(1)}h</Text>
+          <Text style={[compStyles.statValue, { color: colors.sfBlue }]}>{sfHours.toFixed(2)}h</Text>
           <Text style={[compStyles.statSub, { color: colors.textMuted }]}>SF Hours</Text>
         </View>
         <View style={[compStyles.divider, { backgroundColor: colors.border }]} />
@@ -331,7 +331,7 @@ export default function StatsScreen() {
       <View style={styles.heroGrid}>
         <HeroStat label="Assigned" value={String(localStats.total)} icon={<Target size={18} color={colors.accent} />} color={colors.accent} index={0} />
         <HeroStat label="Completed" value={String(localStats.completed)} icon={<CheckCircle size={18} color={colors.complete} />} color={colors.complete} index={1} />
-        <HeroStat label="Uploaded" value={`${localStats.totalLogged.toFixed(1)}h`} icon={<Upload size={18} color={colors.statusPending} />} color={colors.statusPending} index={2} />
+        <HeroStat label="Uploaded" value={`${localStats.totalLogged.toFixed(2)}h`} icon={<Upload size={18} color={colors.statusPending} />} color={colors.statusPending} index={2} />
         <HeroStat label="Active" value={String(localStats.active)} icon={<TrendingUp size={18} color={colors.accentLight} />} color={colors.accentLight} index={3} />
       </View>
 
@@ -344,7 +344,7 @@ export default function StatsScreen() {
           <View style={[styles.weekCard, { backgroundColor: colors.bgCard, borderColor: colors.border, ...cardShadow }]}>
             <View style={styles.weekRow}>
               <View style={styles.weekItem}>
-                <Text style={[styles.weekVal, { color: colors.accent }]}>{stats.weeklyLoggedHours.toFixed(1)}h</Text>
+                <Text style={[styles.weekVal, { color: colors.accent }]}>{stats.weeklyLoggedHours.toFixed(2)}h</Text>
                 <Text style={[styles.weekLbl, { color: colors.textMuted }]}>Hours</Text>
               </View>
               <View style={[styles.weekSep, { backgroundColor: colors.border }]} />
@@ -354,7 +354,7 @@ export default function StatsScreen() {
               </View>
               <View style={[styles.weekSep, { backgroundColor: colors.border }]} />
               <View style={styles.weekItem}>
-                <Text style={[styles.weekVal, { color: colors.textPrimary }]}>{stats.avgHoursPerTask.toFixed(1)}h</Text>
+                <Text style={[styles.weekVal, { color: colors.textPrimary }]}>{stats.avgHoursPerTask.toFixed(2)}h</Text>
                 <Text style={[styles.weekLbl, { color: colors.textMuted }]}>Avg/Task</Text>
               </View>
               <View style={[styles.weekSep, { backgroundColor: colors.border }]} />
@@ -497,7 +497,7 @@ export default function StatsScreen() {
               </View>
               <View style={[styles.allTimeSep, { backgroundColor: colors.border }]} />
               <View style={styles.allTimeItem}>
-                <Text style={[styles.allTimeVal, { color: colors.accent }]}>{stats.totalLoggedHours.toFixed(0)}h</Text>
+                <Text style={[styles.allTimeVal, { color: colors.accent }]}>{stats.totalLoggedHours.toFixed(2)}h</Text>
                 <Text style={[styles.allTimeLbl, { color: colors.textMuted }]}>Hours</Text>
               </View>
               <View style={[styles.allTimeSep, { backgroundColor: colors.border }]} />
@@ -522,7 +522,7 @@ export default function StatsScreen() {
                   <View key={`task_${idx}`} style={[styles.topTaskRow, { borderBottomColor: colors.border }, idx === Math.min(stats.topTasks.length - 1, 7) && styles.topTaskLast]}>
                     <View style={[styles.topTaskDot, { backgroundColor: dotColor }]} />
                     <Text style={[styles.topTaskName, { color: colors.textSecondary }]} numberOfLines={1}>{task.name}</Text>
-                    <Text style={[styles.topTaskHours, { color: dotColor }]}>{task.hours}h</Text>
+                    <Text style={[styles.topTaskHours, { color: dotColor }]}>{Number(task.hours).toFixed(2)}h</Text>
                   </View>
                 );
               })}
