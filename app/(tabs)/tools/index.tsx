@@ -980,7 +980,7 @@ export default function ToolsScreen() {
           contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
+        <View style={[styles.pageHeader, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
           <View>
             <View style={[styles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
               <Text style={[styles.headerTagText, { color: colors.accent }]}>SETTINGS</Text>
@@ -1207,7 +1207,11 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1 },
   content: { paddingHorizontal: DesignTokens.spacing.xl, paddingTop: 14, paddingBottom: 120 },
-  pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: DesignTokens.spacing.lg, paddingBottom: DesignTokens.spacing.md, borderBottomWidth: 1 },
+  pageHeader: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start",
+    marginBottom: DesignTokens.spacing.lg, padding: DesignTokens.spacing.lg,
+    borderRadius: DesignTokens.radius.xl, borderWidth: 1,
+  },
   pageHeaderRight: { alignItems: "flex-end", gap: DesignTokens.spacing.xs },
   headerTag: {
     alignSelf: "flex-start",

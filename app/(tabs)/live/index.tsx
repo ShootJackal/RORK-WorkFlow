@@ -597,7 +597,7 @@ export default function LiveScreen() {
 
   return (
     <ScreenContainer>
-      <View style={[liveStyles.topBar, { borderBottomColor: colors.border }]}>
+      <View style={[liveStyles.topBar, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
         <View style={liveStyles.topBarLeft}>
           <View style={[liveStyles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
             <Text style={[liveStyles.headerTagText, { color: colors.accent }]}>LIVE MONITOR</Text>
@@ -775,10 +775,11 @@ const liveStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingHorizontal: DesignTokens.spacing.lg,
-    paddingTop: 10,
-    paddingBottom: DesignTokens.spacing.md,
-    borderBottomWidth: 1,
+    marginHorizontal: DesignTokens.spacing.md,
+    marginTop: DesignTokens.spacing.sm,
+    padding: DesignTokens.spacing.lg,
+    borderRadius: DesignTokens.radius.xl,
+    borderWidth: 1,
   },
   topBarLeft: { flex: 1 },
   headerTag: {

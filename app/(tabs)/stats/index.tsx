@@ -328,7 +328,7 @@ export default function StatsScreen() {
       showsVerticalScrollIndicator={false}
       refreshControl={refreshControl}
     >
-      <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
+      <View style={[styles.pageHeader, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
         <View>
           <View style={[styles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
             <Text style={[styles.headerTagText, { color: colors.accent }]}>PERFORMANCE</Text>
@@ -590,7 +590,8 @@ const styles = StyleSheet.create({
   content: { padding: DesignTokens.spacing.xl, paddingBottom: 140 },
   pageHeader: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end",
-    marginBottom: DesignTokens.spacing.xxl, paddingBottom: DesignTokens.spacing.md, borderBottomWidth: 1,
+    marginBottom: DesignTokens.spacing.xxl, padding: DesignTokens.spacing.lg,
+    borderRadius: DesignTokens.radius.xl, borderWidth: 1,
   },
   pageHeaderRight: { alignItems: "flex-end", gap: DesignTokens.spacing.xs },
   headerTag: {

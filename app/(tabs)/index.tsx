@@ -246,7 +246,7 @@ export default function DashboardScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />
           }
         >
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={[styles.header, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
             <View style={styles.headerLeft}>
               <View style={[styles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
                 <Text style={[styles.headerTagText, { color: colors.accent }]}>COLLECT HUB</Text>
@@ -512,8 +512,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: DesignTokens.spacing.xl,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
+    padding: DesignTokens.spacing.lg,
+    borderRadius: DesignTokens.radius.xl,
+    borderWidth: 1,
   },
   headerLeft: { gap: DesignTokens.spacing.xs },
   headerTag: {
