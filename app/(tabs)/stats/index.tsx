@@ -18,7 +18,6 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { fetchCollectorStats, fetchLeaderboard, clearApiCache } from "@/services/googleSheets";
 import { CollectorStats, LeaderboardEntry } from "@/types";
 
-const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
 const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 function normalizeCollectorName(name: string): string {
@@ -276,6 +275,9 @@ export default function StatsScreen() {
 
   const stats = statsQuery.data;
   const cardShadow = { shadowColor: isDark ? '#7C3AED' : colors.shadow, shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.15 : 0.1, shadowRadius: 20, elevation: 8 };
+  const refreshControl = Platform.OS === "web"
+    ? undefined
+    : <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />;
 
   const tabItems: { key: LeaderboardTab; label: string; color: string }[] = [
     { key: "combined", label: "All", color: colors.accent },
@@ -294,7 +296,6 @@ export default function StatsScreen() {
   const hasLeaderboardError = leaderboardQuery.isError && !leaderboardQuery.data && !leaderboardQuery.isLoading;
   const hasStatsError = statsQuery.isError && !statsQuery.data && !statsQuery.isLoading;
   const isStatsLoading = statsQuery.isLoading && !statsQuery.data;
-  const isSyncing = refreshing || statsQuery.isFetching || leaderboardQuery.isFetching;
 
   useEffect(() => {
     const pulse = Animated.loop(
@@ -322,7 +323,7 @@ export default function StatsScreen() {
       style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
       contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]}
       showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={refreshControl}
     >
       <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
         <View>
@@ -335,22 +336,6 @@ export default function StatsScreen() {
           </Text>
         </View>
         <View style={styles.pageHeaderRight}>
-          <View style={[styles.syncBadge, {
-            backgroundColor: isSyncing ? colors.statusPending + "14" : colors.completeBg,
-            borderColor: isSyncing ? colors.statusPending + "3A" : colors.complete + "30",
-          }]}>
-            <Animated.View style={[styles.syncDot, {
-              backgroundColor: isSyncing ? colors.statusPending : colors.complete,
-              opacity: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }),
-              transform: [{ scale: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.3] }) }],
-            }]} />
-            <Text style={[styles.syncText, {
-              color: isSyncing ? colors.statusPending : colors.complete,
-              fontFamily: FONT_MONO,
-            }]}>
-              {isSyncing ? "SYNCING" : "SYNCED"}
-            </Text>
-          </View>
           <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
           {selectedRig !== "" && (
             <Text style={[styles.rigBadge, { color: colors.textMuted }]}>{selectedRig}</Text>
@@ -618,17 +603,6 @@ const styles = StyleSheet.create({
     fontWeight: "800" as const,
     letterSpacing: 1.1,
   },
-  syncBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-  },
-  syncDot: { width: 6, height: 6, borderRadius: 3 },
-  syncText: { fontSize: 9, fontWeight: "700" as const, letterSpacing: 1 },
   headerLogo: {
     width: 28, height: 28,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
