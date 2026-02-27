@@ -12,13 +12,13 @@ import {
   Modal,
   TextInput,
   Alert,
+  Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MessageSquare,
   Clock,
   AlertTriangle,
-  ChevronRight,
   Moon,
   Sun,
   User,
@@ -106,12 +106,6 @@ function CompactTimer() {
     Animated.timing(progressAnim, { toValue: progress * 100, duration: 250, useNativeDriver: false }).start();
   }, [progress, progressAnim]);
 
-  const fireAlarm = useCallback(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 400);
-    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 800);
-  }, []);
-
   const start = useCallback(() => {
     if (finished) { setFinished(false); setSecondsLeft(selectedMinutes * 60); }
     setRunning(true);
@@ -146,13 +140,18 @@ function CompactTimer() {
     if (running && secondsLeft > 0) {
       intervalRef.current = setInterval(() => {
         setSecondsLeft(s => {
-          if (s <= 1) { setRunning(false); setFinished(true); fireAlarm(); return 0; }
+          if (s <= 1) {
+            setRunning(false);
+            setFinished(true);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            return 0;
+          }
           return s - 1;
         });
       }, 1000);
     } else if (intervalRef.current) { clearInterval(intervalRef.current); }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [running, secondsLeft, fireAlarm]);
+  }, [running, secondsLeft]);
 
   const activeOption = TIMER_OPTIONS.find(p => p.mins === selectedMinutes);
   const ringColor = finished ? colors.cancel : running ? (activeOption?.color ?? colors.accent) : colors.textMuted;
@@ -629,7 +628,7 @@ export default function ToolsScreen() {
     ]);
   }, []);
 
-  const cardStyle = [styles.card, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }] as const;
+  const cardStyle = [styles.card, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }];
 
   return (
     <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
@@ -640,7 +639,10 @@ export default function ToolsScreen() {
       >
         <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
           <View>
-            <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>Tools</Text>
+            <View style={[styles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
+              <Text style={[styles.headerTagText, { color: colors.accent }]}>SETTINGS</Text>
+            </View>
+            <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_700Bold" }]}>Tools</Text>
             <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>Settings & Utilities</Text>
           </View>
           <View style={styles.pageHeaderRight}>
@@ -718,26 +720,29 @@ export default function ToolsScreen() {
         <CompactTimer />
 
         <View style={styles.sectionGap} />
-
-        <TouchableOpacity
+        <View
           style={[...cardStyle, styles.themeRow]}
-          onPress={handleToggleTheme}
-          activeOpacity={0.75}
           testID="theme-toggle"
         >
           <View style={[styles.settingIconWrap, { backgroundColor: isDark ? "#1A1510" : colors.bgElevated }]}>
             {isDark ? <Sun size={16} color={colors.alertYellow} /> : <Moon size={16} color={colors.textSecondary} />}
           </View>
           <View style={styles.themeContent}>
-            <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>
-              {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            </Text>
+            <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
             <Text style={[styles.themeSub, { color: colors.textMuted }]}>
-              {isDark ? "Easier on the eyes outdoors" : "Better for low-light collection"}
+              iOS-style toggle for familiar on/off control
             </Text>
           </View>
-          <ChevronRight size={15} color={colors.textMuted} />
-        </TouchableOpacity>
+          <View style={styles.themeSwitchWrap}>
+            <Switch
+              value={isDark}
+              onValueChange={handleToggleTheme}
+              trackColor={{ false: colors.border, true: colors.accentDim }}
+              thumbColor={isDark ? colors.accent : colors.white}
+              ios_backgroundColor={colors.border}
+            />
+          </View>
+        </View>
 
         <View style={styles.sectionGap} />
         <SectionHeader label="Quick Actions" icon={<Zap size={11} color={colors.textMuted} />} />
@@ -842,8 +847,17 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 100 },
   pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1 },
   pageHeaderRight: { alignItems: "flex-end", gap: 4 },
-  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
-  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
+  headerTag: {
+    alignSelf: "flex-start",
+    borderRadius: 7,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 2,
+  },
+  headerTagText: { fontSize: 9, fontWeight: "800" as const, letterSpacing: 1.1 },
+  brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
+  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
   headerLogo: {
     width: 34, height: 34, borderRadius: 10,
     shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 8,
@@ -876,8 +890,9 @@ const styles = StyleSheet.create({
   adminLogoutText: { fontSize: 12, fontWeight: "600" as const },
   themeRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 14, gap: 10 },
   themeContent: { flex: 1 },
-  themeLabel: { fontSize: 14, fontWeight: "500" as const },
+  themeLabel: { fontSize: 14, fontWeight: "700" as const },
   themeSub: { fontSize: 10, marginTop: 2 },
+  themeSwitchWrap: { marginLeft: 6 },
   quickGrid: { flexDirection: "row", gap: 10 },
   quickCardWrap: { flex: 1 },
   quickCard: {

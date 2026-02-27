@@ -123,7 +123,7 @@ function BootSequence({ onComplete }: { onComplete: () => void }) {
     Animated.timing(fadeOut, { toValue: 0, duration: 450, useNativeDriver: true }).start(() => onComplete());
   }, [fadeOut, onComplete]);
 
-  const bgColor = isDark ? '#0A090E' : '#F5F3F0';
+  const bgColor = colors.bg;
   const accentColor = colors.accent;
   const dimColor = colors.terminalDim;
 
@@ -156,7 +156,7 @@ function BootSequence({ onComplete }: { onComplete: () => void }) {
       </View>
 
       <View style={bootStyles.progressWrap}>
-        <View style={[bootStyles.progressTrack, { backgroundColor: isDark ? '#1C1B24' : '#E0DCD6' }]}>
+        <View style={[bootStyles.progressTrack, { backgroundColor: colors.bgElevated }]}>
           <Animated.View style={[bootStyles.progressFill, {
             backgroundColor: accentColor,
             width: progressAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }),
@@ -182,7 +182,7 @@ function BootSequence({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-const { width: SW, height: SH } = Dimensions.get("window");
+const { width: SW } = Dimensions.get("window");
 
 const bootStyles = StyleSheet.create({
   container: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 999 },

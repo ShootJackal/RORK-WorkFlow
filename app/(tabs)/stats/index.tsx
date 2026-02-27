@@ -6,7 +6,6 @@ import {
   StyleSheet,
   RefreshControl,
   Animated,
-  ActivityIndicator,
   TouchableOpacity,
   Platform,
 } from "react-native";
@@ -186,9 +185,10 @@ export default function StatsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured, collectors } = useCollection();
+  const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured } = useCollection();
   const [refreshing, setRefreshing] = useState(false);
   const [lbTab, setLbTab] = useState<LeaderboardTab>("combined");
+  const syncPulse = useRef(new Animated.Value(0)).current;
 
   const normalizedName = useMemo(() => normalizeCollectorName(selectedCollectorName), [selectedCollectorName]);
 
@@ -283,6 +283,23 @@ export default function StatsScreen() {
 
   const currentLbEntries = lbTab === "sf" ? sfEntries : lbTab === "mx" ? mxEntries : leaderboard;
 
+  const isInitialLoad = leaderboardQuery.isLoading && !leaderboardQuery.data;
+  const hasLeaderboardError = leaderboardQuery.isError && !leaderboardQuery.data && !leaderboardQuery.isLoading;
+  const hasStatsError = statsQuery.isError && !statsQuery.data && !statsQuery.isLoading;
+  const isStatsLoading = statsQuery.isLoading && !statsQuery.data;
+  const isSyncing = refreshing || statsQuery.isFetching || leaderboardQuery.isFetching;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(syncPulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(syncPulse, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [syncPulse]);
+
   if (!selectedCollector) {
     return (
       <View style={[styles.empty, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
@@ -293,26 +310,40 @@ export default function StatsScreen() {
     );
   }
 
-  const isInitialLoad = leaderboardQuery.isLoading && !leaderboardQuery.data;
-  const hasLeaderboardError = leaderboardQuery.isError && !leaderboardQuery.data && !leaderboardQuery.isLoading;
-  const hasStatsError = statsQuery.isError && !statsQuery.data && !statsQuery.isLoading;
-  const isStatsLoading = statsQuery.isLoading && !statsQuery.data;
-
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
     >
       <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
         <View>
-          <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>Stats</Text>
+          <View style={[styles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
+            <Text style={[styles.headerTagText, { color: colors.accent }]}>PERFORMANCE</Text>
+          </View>
+          <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_700Bold" }]}>Stats</Text>
           <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>
             {normalizeCollectorName(selectedCollector.name)}
           </Text>
         </View>
         <View style={styles.pageHeaderRight}>
+          <View style={[styles.syncBadge, {
+            backgroundColor: isSyncing ? colors.statusPending + "14" : colors.completeBg,
+            borderColor: isSyncing ? colors.statusPending + "3A" : colors.complete + "30",
+          }]}>
+            <Animated.View style={[styles.syncDot, {
+              backgroundColor: isSyncing ? colors.statusPending : colors.complete,
+              opacity: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }),
+              transform: [{ scale: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.3] }) }],
+            }]} />
+            <Text style={[styles.syncText, {
+              color: isSyncing ? colors.statusPending : colors.complete,
+              fontFamily: FONT_MONO,
+            }]}>
+              {isSyncing ? "SYNCING" : "SYNCED"}
+            </Text>
+          </View>
           <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
           {selectedRig !== "" && (
             <Text style={[styles.rigBadge, { color: colors.textMuted }]}>{selectedRig}</Text>
@@ -399,8 +430,13 @@ export default function StatsScreen() {
 
       {isInitialLoad ? (
         <View style={[styles.lbEmpty, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={[styles.lbEmptyText, { color: colors.textMuted, marginTop: 8 }]}>Loading leaderboard...</Text>
+          <View style={styles.loadingRow}>
+            <Animated.View style={[styles.inlineSyncDot, {
+              backgroundColor: colors.statusPending,
+              opacity: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 1] }),
+            }]} />
+            <Text style={[styles.lbEmptyText, { color: colors.textMuted }]}>Syncing leaderboard...</Text>
+          </View>
         </View>
       ) : hasLeaderboardError ? (
         <TouchableOpacity
@@ -459,8 +495,11 @@ export default function StatsScreen() {
 
       {isStatsLoading && (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading stats...</Text>
+          <Animated.View style={[styles.inlineSyncDot, {
+            backgroundColor: colors.statusPending,
+            opacity: syncPulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 1] }),
+          }]} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Syncing stats...</Text>
         </View>
       )}
 
@@ -535,19 +574,43 @@ export default function StatsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: 20 },
   pageHeader: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end",
     marginBottom: 22, paddingBottom: 12, borderBottomWidth: 1,
   },
   pageHeaderRight: { alignItems: "flex-end", gap: 4 },
+  headerTag: {
+    alignSelf: "flex-start",
+    borderRadius: 7,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 2,
+  },
+  headerTagText: {
+    fontSize: 9,
+    fontWeight: "800" as const,
+    letterSpacing: 1.1,
+  },
+  syncBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  syncDot: { width: 6, height: 6, borderRadius: 3 },
+  syncText: { fontSize: 9, fontWeight: "700" as const, letterSpacing: 1 },
   headerLogo: {
     width: 28, height: 28,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
-  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
-  rigBadge: { fontSize: 9, letterSpacing: 0.5 },
+  brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
+  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
+  rigBadge: { fontSize: 10, letterSpacing: 0.6, fontWeight: "500" as const },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 },
   sectionLabel: { fontSize: 10, letterSpacing: 1.4, fontWeight: "700" as const },
   sectionLabelMuted: { fontSize: 10, letterSpacing: 1.2, fontWeight: "600" as const },
@@ -577,6 +640,8 @@ const styles = StyleSheet.create({
   lbHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 4, paddingBottom: 8, marginBottom: 4 },
   lbHeaderText: { fontSize: 10, fontWeight: "600" as const, letterSpacing: 0.5, textTransform: "uppercase" },
   lbEmpty: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 12, alignItems: "center" },
+  loadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  inlineSyncDot: { width: 7, height: 7, borderRadius: 4 },
   lbEmptyText: { fontSize: 13 },
   lbEmptyRetry: { fontSize: 12, marginTop: 6, fontWeight: "600" as const },
   recentCard: { borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1 },

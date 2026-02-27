@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { Send, Wrench, BarChart3, Radio } from "lucide-react-native";
 import React, { useRef, useCallback } from "react";
+import { BlurView } from "expo-blur";
 import {
   View,
   Text,
@@ -45,7 +46,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
   }, [currentIndex, TAB_WIDTH, sliderAnim]);
 
   const handlePress = useCallback(
-    (tabName: string, index: number) => {
+    (index: number) => {
       const route = state.routes[index];
       const isFocused = state.index === index;
       const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
@@ -58,59 +59,80 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
   );
 
   const BOTTOM_PAD = insets.bottom > 0 ? insets.bottom : 10;
-  const fadeBg = isDark ? '#0F0E13' : '#F5F3F0';
+  const FLOAT_OFFSET = 12;
+  const fadeBg = colors.bg;
 
   return (
-    <View style={[barStyles.outerWrap, { paddingBottom: BOTTOM_PAD }]}>
+    <View style={[barStyles.outerWrap, { paddingBottom: BOTTOM_PAD + FLOAT_OFFSET }]}>
       {/* Gradient fade layers - transparent at top, solid at bottom */}
       <View style={[barStyles.fadeLayer1, { backgroundColor: fadeBg, opacity: 0 }]} pointerEvents="none" />
       <View style={[barStyles.fadeLayer2, { backgroundColor: fadeBg, opacity: 0.4 }]} pointerEvents="none" />
       <View style={[barStyles.fadeLayer3, { backgroundColor: fadeBg, opacity: 0.75 }]} pointerEvents="none" />
       <View style={[barStyles.fadeLayer4, { backgroundColor: fadeBg, opacity: 0.95 }]} pointerEvents="none" />
+      <View style={barStyles.blurBand} pointerEvents="none">
+        <BlurView
+          intensity={isDark ? 32 : 56}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
-      <View style={[barStyles.island, {
-        backgroundColor: isDark ? '#1B1A21' : '#FFFFFF',
-        shadowColor: isDark ? '#A78BFA' : '#3D2B6B',
-        borderColor: isDark ? '#2A2933' : '#DDD9D3',
-      }]}>
-        <Animated.View style={[barStyles.slider, {
-          backgroundColor: colors.accent,
-          width: TAB_WIDTH * 0.5,
-          left: TAB_WIDTH * 0.25,
-          transform: [{ translateX: sliderAnim }],
-        }]} />
+      <View style={barStyles.islandWrap}>
+        <View style={[barStyles.tintTray, {
+          borderColor: isDark ? colors.accentDim + "80" : colors.borderLight,
+          backgroundColor: isDark ? "rgba(62,54,90,0.42)" : "rgba(236,232,225,0.86)",
+        }]} pointerEvents="none">
+          <BlurView
+            intensity={isDark ? 24 : 32}
+            tint={isDark ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
 
-        {TAB_ORDER.map((tabName, index) => {
-          const isFocused = state.index === index;
-          const cfg = TAB_CONFIG[tabName];
-          const isLive = tabName === "live";
-          const iconColor = isFocused ? (isLive ? colors.complete : colors.accent) : colors.textMuted;
+        <View style={[barStyles.island, {
+          backgroundColor: colors.tabBar,
+          shadowColor: isDark ? colors.accent : colors.shadow,
+          borderColor: colors.border,
+        }]}>
+          <Animated.View style={[barStyles.slider, {
+            backgroundColor: colors.accent,
+            width: TAB_WIDTH * 0.5,
+            left: TAB_WIDTH * 0.25,
+            transform: [{ translateX: sliderAnim }],
+          }]} />
 
-          return (
-            <TouchableOpacity
-              key={tabName}
-              style={[barStyles.tab, { width: TAB_WIDTH }]}
-              onPress={() => handlePress(tabName, index)}
-              activeOpacity={0.7}
-              testID={`tab-${tabName}`}
-            >
-              <View style={[barStyles.iconWrap, isFocused && {
-                backgroundColor: isLive ? colors.complete + "15" : colors.accent + "12",
-                borderRadius: 14,
-              }]}>
-                {cfg.icon(iconColor, 19)}
-                {isLive && <View style={[barStyles.liveBlip, { backgroundColor: colors.complete }]} />}
-              </View>
-              <Text style={[barStyles.label, {
-                color: iconColor,
-                fontWeight: isFocused ? "600" as const : "400" as const,
-                fontSize: isLive ? 8 : 9,
-                letterSpacing: isLive ? 1.5 : 0.5,
-                fontFamily: isFocused ? "Lexend_600SemiBold" : "Lexend_400Regular",
-              }]}>{cfg.title}</Text>
-            </TouchableOpacity>
-          );
-        })}
+          {TAB_ORDER.map((tabName, index) => {
+            const isFocused = state.index === index;
+            const cfg = TAB_CONFIG[tabName];
+            const isLive = tabName === "live";
+            const iconColor = isFocused ? (isLive ? colors.complete : colors.accent) : colors.textMuted;
+
+            return (
+              <TouchableOpacity
+                key={tabName}
+                style={[barStyles.tab, { width: TAB_WIDTH }]}
+                onPress={() => handlePress(index)}
+                activeOpacity={0.7}
+                testID={`tab-${tabName}`}
+              >
+                <View style={[barStyles.iconWrap, isFocused && {
+                  backgroundColor: isLive ? colors.complete + "15" : colors.accent + "12",
+                  borderRadius: 14,
+                }]}>
+                  {cfg.icon(iconColor, 19)}
+                  {isLive && <View style={[barStyles.liveBlip, { backgroundColor: colors.complete }]} />}
+                </View>
+                <Text style={[barStyles.label, {
+                  color: iconColor,
+                  fontWeight: isFocused ? "700" as const : "500" as const,
+                  fontSize: isLive ? 8 : 9,
+                  letterSpacing: isLive ? 1.5 : 0.5,
+                  fontFamily: isFocused ? "Lexend_700Bold" : "Lexend_500Medium",
+                }]}>{cfg.title}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -141,9 +163,33 @@ const barStyles = StyleSheet.create({
   fadeLayer2: { position: "absolute", bottom: -10, left: 0, right: 0, height: 110 },
   fadeLayer3: { position: "absolute", bottom: -10, left: 0, right: 0, height: 80 },
   fadeLayer4: { position: "absolute", bottom: -10, left: 0, right: 0, height: 55 },
+  blurBand: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    bottom: 8,
+    height: 74,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
+  },
+  islandWrap: {
+    width: "100%",
+    position: "relative",
+  },
+  tintTray: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    bottom: -8,
+    height: 46,
+    borderRadius: 24,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
   island: {
     flexDirection: "row", borderRadius: 28, borderWidth: 1, paddingVertical: 6,
-    shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.15, shadowRadius: 28, elevation: 24,
+    shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.2, shadowRadius: 30, elevation: 24,
     position: "relative", overflow: "hidden", width: "100%",
   },
   slider: { position: "absolute", bottom: 0, height: 2.5, borderTopLeftRadius: 2, borderTopRightRadius: 2 },
