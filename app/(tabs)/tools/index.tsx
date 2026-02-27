@@ -562,9 +562,11 @@ export default function ToolsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (name === "__admin__") {
       if (isAdmin) {
+        Alert.alert("Admin already unlocked", "Admin mode is already active on this device.");
         return;
       }
-      setShowAdminModal(true);
+      // Allow the picker modal to close before opening the password modal.
+      setTimeout(() => setShowAdminModal(true), 220);
       return;
     }
     selectCollector(name);
@@ -715,9 +717,10 @@ export default function ToolsScreen() {
           </TouchableOpacity>
         )}
 
-        <View style={styles.sectionGap} />
-        <SectionHeader label="Collection Timer" icon={<Timer size={11} color={colors.textMuted} />} />
-        <CompactTimer />
+        <View style={styles.hiddenTimer}>
+          <SectionHeader label="Collection Timer" icon={<Timer size={11} color={colors.textMuted} />} />
+          <CompactTimer />
+        </View>
 
         <View style={styles.sectionGap} />
         <View
@@ -730,7 +733,7 @@ export default function ToolsScreen() {
           <View style={styles.themeContent}>
             <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
             <Text style={[styles.themeSub, { color: colors.textMuted }]}>
-              iOS-style toggle for familiar on/off control
+              Switch app appearance
             </Text>
           </View>
           <View style={styles.themeSwitchWrap}>
@@ -867,6 +870,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1,
   },
   adminBadgeText: { fontSize: 8, fontWeight: "800" as const, letterSpacing: 1.2 },
+  hiddenTimer: { display: "none" },
   sectionGap: { height: 20 },
   card: {
     borderRadius: 20, borderWidth: 1, overflow: "hidden", marginBottom: 2,

@@ -26,6 +26,7 @@ function normalizeCollectorName(name: string): string {
 }
 
 type LeaderboardTab = "combined" | "sf" | "mx";
+type LeaderboardPeriod = "thisWeek" | "lastWeek";
 
 function AnimatedBar({ value, maxValue, color, delay }: { value: number; maxValue: number; color: string; delay: number }) {
   const widthAnim = useRef(new Animated.Value(0)).current;
@@ -188,6 +189,7 @@ export default function StatsScreen() {
   const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured } = useCollection();
   const [refreshing, setRefreshing] = useState(false);
   const [lbTab, setLbTab] = useState<LeaderboardTab>("combined");
+  const [lbPeriod, setLbPeriod] = useState<LeaderboardPeriod>("thisWeek");
   const syncPulse = useRef(new Animated.Value(0)).current;
 
   const normalizedName = useMemo(() => normalizeCollectorName(selectedCollectorName), [selectedCollectorName]);
@@ -202,8 +204,8 @@ export default function StatsScreen() {
   });
 
   const leaderboardQuery = useQuery<LeaderboardEntry[]>({
-    queryKey: ["leaderboard"],
-    queryFn: () => fetchLeaderboard(),
+    queryKey: ["leaderboard", lbPeriod],
+    queryFn: () => fetchLeaderboard(lbPeriod),
     enabled: configured,
     staleTime: 120000,
     retry: 2,
@@ -280,6 +282,11 @@ export default function StatsScreen() {
     { key: "mx", label: "MX", color: colors.mxOrange },
     { key: "sf", label: "SF", color: colors.sfBlue },
   ];
+  const periodItems: { key: LeaderboardPeriod; label: string }[] = [
+    { key: "thisWeek", label: "This Week" },
+    { key: "lastWeek", label: "Last Week" },
+  ];
+  const periodLabel = lbPeriod === "thisWeek" ? "THIS WEEK" : "LAST WEEK";
 
   const currentLbEntries = lbTab === "sf" ? sfEntries : lbTab === "mx" ? mxEntries : leaderboard;
 
@@ -397,7 +404,25 @@ export default function StatsScreen() {
 
       <View style={[styles.sectionHeader, { marginTop: 24 }]}>
         <Trophy size={12} color={colors.gold} />
-        <Text style={[styles.sectionLabel, { color: colors.gold }]}>LEADERBOARD</Text>
+        <Text style={[styles.sectionLabel, { color: colors.gold }]}>{`LEADERBOARD · ${periodLabel}`}</Text>
+      </View>
+
+      <View style={[styles.periodSwitchRow, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+        {periodItems.map((item) => (
+          <TouchableOpacity
+            key={item.key}
+            style={[styles.periodBtn, lbPeriod === item.key && { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}
+            onPress={() => setLbPeriod(item.key)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.periodBtnText, {
+              color: lbPeriod === item.key ? colors.accent : colors.textMuted,
+              fontWeight: lbPeriod === item.key ? "700" as const : "500" as const,
+            }]}>
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <View style={[styles.lbTabRow, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
@@ -451,13 +476,13 @@ export default function StatsScreen() {
         <View style={[styles.leaderboardCard, { backgroundColor: colors.bgCard, borderColor: colors.border, ...cardShadow }]}>
           <View style={styles.lbHeaderRow}>
             <Text style={[styles.lbHeaderText, { color: colors.textMuted }]}>
-              {lbTab === "sf" ? "San Francisco" : lbTab === "mx" ? "Los Cabos (MX)" : "Combined"} Rankings
+              {`${lbTab === "sf" ? "San Francisco" : lbTab === "mx" ? "Los Cabos (MX)" : "Combined"} Rankings · ${periodLabel}`}
             </Text>
             <Medal size={14} color={colors.gold} />
           </View>
           {currentLbEntries.slice(0, 20).map((entry, idx) => (
             <LeaderboardRow
-              key={`lb_${lbTab}_${idx}`}
+              key={`lb_${lbPeriod}_${lbTab}_${idx}`}
               entry={entry}
               index={idx}
               isCurrentUser={normalizeCollectorName(entry.collectorName).toLowerCase() === normalizedName.toLowerCase()}
@@ -476,7 +501,7 @@ export default function StatsScreen() {
 
       {lbTab === "combined" && recentCompleted.length > 0 && (
         <View style={[styles.recentCard, { backgroundColor: colors.bgCard, borderColor: colors.border, ...cardShadow }]}>
-          <Text style={[styles.recentTitle, { color: colors.textMuted }]}>TOP COLLECTORS</Text>
+          <Text style={[styles.recentTitle, { color: colors.textMuted }]}>{`TOP COLLECTORS · ${periodLabel}`}</Text>
           {recentCompleted.map((item, idx) => {
             const regionColor = item.region === "MX" ? colors.mxOrange : colors.sfBlue;
             return (
@@ -628,6 +653,25 @@ const styles = StyleSheet.create({
   weekItem: { flex: 1, alignItems: "center" },
   weekVal: { fontSize: 16, fontWeight: "600" as const },
   weekLbl: { fontSize: 10, marginTop: 3 },
+  periodSwitchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 6,
+    marginBottom: 8,
+  },
+  periodBtn: {
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 7,
+  },
+  periodBtnText: { fontSize: 11, letterSpacing: 0.3 },
   lbTabRow: {
     flexDirection: "row", alignItems: "center", gap: 6,
     borderRadius: 12, borderWidth: 1, padding: 6, marginBottom: 10,
