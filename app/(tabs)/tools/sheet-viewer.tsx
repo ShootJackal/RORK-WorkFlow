@@ -273,8 +273,9 @@ function TaskActualsView({ configured }: { configured: boolean }) {
 
 function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; colors: any; showRecollectTime?: boolean }) {
   const isRecollect = task.status.toUpperCase() === "RECOLLECT";
-  const recollectNeeded = isRecollect && task.remainingHours > 0 ? task.remainingHours : 0;
-  const goodGap = isRecollect ? Math.max(task.collectedHours - task.goodHours, 0) : 0;
+  const remaining = Math.round(task.remainingHours * 100) / 100;
+  const recollectNeeded = isRecollect && remaining > 0 ? remaining : 0;
+  const goodGap = isRecollect ? Math.max(Math.round((task.collectedHours - task.goodHours) * 100) / 100, 0) : 0;
 
   return (
     <View style={[viewStyles.taskCard, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>

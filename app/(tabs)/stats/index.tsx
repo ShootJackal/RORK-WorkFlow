@@ -203,7 +203,7 @@ export default function StatsScreen() {
   });
 
   const leaderboardQuery = useQuery<LeaderboardEntry[]>({
-    queryKey: ["leaderboard", selectedWeek],
+    queryKey: ["leaderboard"],
     queryFn: () => fetchLeaderboard(),
     enabled: configured,
     staleTime: 120000,
