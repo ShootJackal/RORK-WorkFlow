@@ -41,7 +41,6 @@ import {
   Users,
   Star,
 } from "lucide-react-native";
-import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -54,7 +53,6 @@ import { AdminDashboardData, CollectorSummary, TaskActualRow } from "@/types";
 import SelectPicker from "@/components/SelectPicker";
 
 const FONT_MONO = DesignTokens.fontMono;
-const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 const COMPLETED_TASK_STATUSES = new Set(["DONE", "COMPLETED", "COMPLETE", "FINISHED", "CLOSED"]);
 const RECOLLECT_TASK_STATUSES = new Set(["RECOLLECT", "NEEDS_RECOLLECTION", "NEEDS_RECOLLECT", "RECOLLECTION"]);
@@ -726,7 +724,6 @@ export default function ToolsScreen() {
             <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>Settings & Utilities</Text>
           </View>
           <View style={styles.pageHeaderRight}>
-            <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
             {isAdmin && (
               <View style={[styles.adminBadge, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
                 <Shield size={9} color={colors.accent} />
@@ -940,10 +937,6 @@ const styles = StyleSheet.create({
   headerTagText: { fontSize: 9, fontWeight: "800" as const, letterSpacing: 1.1 },
   brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
-  headerLogo: {
-    width: 34, height: 34, borderRadius: DesignTokens.radius.md,
-    ...DesignTokens.shadow.subtle,
-  },
   adminBadge: {
     flexDirection: "row", alignItems: "center", gap: 4,
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1,

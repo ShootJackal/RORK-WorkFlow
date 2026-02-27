@@ -25,15 +25,12 @@ import {
   Search,
   X,
 } from "lucide-react-native";
-import { Image } from "expo-image";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { DesignTokens } from "@/constants/colors";
 import ScreenContainer from "@/components/ScreenContainer";
 import SelectPicker from "@/components/SelectPicker";
 import ActionButton from "@/components/ActionButton";
-
-const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 const LogEntryRow = React.memo(function LogEntryRow({ entry, statusColor, colors, isLast }: {
   entry: { taskName: string; status: string; loggedHours: number; plannedHours: number; remainingHours: number; notes: string };
@@ -262,11 +259,6 @@ export default function DashboardScreen() {
               </Text>
             </View>
             <View style={styles.headerRight}>
-              <Image
-                source={LOGO_URI}
-                style={styles.headerLogo}
-                contentFit="contain"
-              />
               {selectedRig !== "" && (
                 <Text style={[styles.rigLabel, { color: colors.textMuted }]}>{selectedRig}</Text>
               )}
@@ -538,12 +530,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
   },
   headerRight: { alignItems: "flex-end", gap: DesignTokens.spacing.xs + 2 },
-  headerLogo: {
-    width: 34,
-    height: 34,
-    borderRadius: DesignTokens.radius.md,
-    ...DesignTokens.shadow.subtle,
-  },
   brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
   rigLabel: { fontSize: 10, letterSpacing: 0.6, fontWeight: "500" as const },

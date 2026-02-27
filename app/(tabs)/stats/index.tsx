@@ -11,15 +11,12 @@ import {
 } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TrendingUp, CheckCircle, Target, Inbox, Calendar, Trophy, Medal, Crown, Upload } from "lucide-react-native";
-import { Image } from "expo-image";
 import { useCollection } from "@/providers/CollectionProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { DesignTokens } from "@/constants/colors";
 import ScreenContainer from "@/components/ScreenContainer";
 import { fetchCollectorStats, fetchLeaderboard, clearApiCache } from "@/services/googleSheets";
 import { CollectorStats, LeaderboardEntry } from "@/types";
-
-const LOGO_URI = require("@/assets/images/taskflow-logo.png");
 
 function normalizeCollectorName(name: string): string {
   return name.replace(/\s*\(.*?\)\s*$/g, "").trim();
@@ -342,7 +339,6 @@ export default function StatsScreen() {
           </Text>
         </View>
         <View style={styles.pageHeaderRight}>
-          <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
           {selectedRig !== "" && (
             <Text style={[styles.rigBadge, { color: colors.textMuted }]}>{selectedRig}</Text>
           )}
@@ -609,10 +605,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "800" as const,
     letterSpacing: 1.1,
-  },
-  headerLogo: {
-    width: 28, height: 28,
-    ...DesignTokens.shadow.subtle,
   },
   brandText: { fontSize: 34, fontWeight: "700" as const, letterSpacing: 0.2 },
   brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.7, marginTop: 2, textTransform: "uppercase" },
