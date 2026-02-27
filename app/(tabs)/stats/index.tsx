@@ -308,11 +308,8 @@ export default function StatsScreen() {
     >
       <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
         <View>
-          <View style={styles.headerTitleRow}>
-            <Text style={[styles.brandText, { color: colors.accent }]}>STATS</Text>
-            <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
-          </View>
-          <Text style={[styles.brandSub, { color: colors.textSecondary }]}>
+          <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>Stats</Text>
+          <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>
             {normalizeCollectorName(selectedCollector.name)}
           </Text>
         </View>
@@ -566,10 +563,8 @@ const styles = StyleSheet.create({
     width: 28, height: 28,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 0 },
-  headerAccent: { width: 0, height: 0 },
-  brandText: { fontSize: 30, fontWeight: "800" as const, letterSpacing: 3 },
-  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.5, marginTop: 4 },
+  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
+  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
   rigBadge: { fontSize: 9, letterSpacing: 0.5 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 },
   sectionLabel: { fontSize: 10, letterSpacing: 1.4, fontWeight: "700" as const },

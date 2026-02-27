@@ -243,13 +243,10 @@ export default function DashboardScreen() {
         >
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerLeft}>
-              <View style={styles.headerTitleRow}>
-                <Text style={[styles.brandText, { color: colors.accent }]}>
-                  COLLECT
-                </Text>
-                <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
-              </View>
-              <Text style={[styles.brandSub, { color: colors.textSecondary }]}>
+              <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>
+                Collect
+              </Text>
+              <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>
                 {selectedCollector ? `${selectedCollector.name.split(" ")[0]}'s Workspace` : "Task Management"}
               </Text>
             </View>
@@ -515,20 +512,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   headerLeft: {},
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 0 },
-  headerAccent: { width: 0, height: 0 },
   headerRight: { alignItems: "flex-end", gap: 6 },
   headerLogo: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: 10,
     shadowColor: "#7C3AED",
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.18,
     shadowRadius: 8,
   },
-  brandText: { fontSize: 30, fontWeight: "800" as const, letterSpacing: 3 },
-  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.5, marginTop: 4 },
+  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
+  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
   rigLabel: { fontSize: 9, letterSpacing: 0.5 },
   openPill: {
     flexDirection: "row",

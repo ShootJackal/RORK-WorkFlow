@@ -640,11 +640,8 @@ export default function ToolsScreen() {
       >
         <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
           <View>
-            <View style={styles.headerTitleRow}>
-              <Text style={[styles.brandText, { color: colors.accent }]}>TOOLS</Text>
-              <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
-            </View>
-            <Text style={[styles.brandSub, { color: colors.textSecondary }]}>Settings & Utilities</Text>
+            <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>Tools</Text>
+            <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>Settings & Utilities</Text>
           </View>
           <View style={styles.pageHeaderRight}>
             <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
@@ -845,13 +842,11 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 100 },
   pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1 },
   pageHeaderRight: { alignItems: "flex-end", gap: 4 },
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 0 },
-  headerAccent: { width: 0, height: 0 },
-  brandText: { fontSize: 30, fontWeight: "800" as const, letterSpacing: 3 },
-  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.5, marginTop: 4 },
+  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
+  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
   headerLogo: {
-    width: 36, height: 36, borderRadius: 10,
-    shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8,
+    width: 34, height: 34, borderRadius: 10,
+    shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 8,
   },
   adminBadge: {
     flexDirection: "row", alignItems: "center", gap: 4,
