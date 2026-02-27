@@ -7,6 +7,7 @@ import {
   RefreshControl,
   Animated,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -274,6 +275,9 @@ export default function StatsScreen() {
 
   const stats = statsQuery.data;
   const cardShadow = { shadowColor: isDark ? '#7C3AED' : colors.shadow, shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.15 : 0.1, shadowRadius: 20, elevation: 8 };
+  const refreshControl = Platform.OS === "web"
+    ? undefined
+    : <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />;
 
   const tabItems: { key: LeaderboardTab; label: string; color: string }[] = [
     { key: "combined", label: "All", color: colors.accent },
@@ -319,7 +323,7 @@ export default function StatsScreen() {
       style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
       contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]}
       showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={refreshControl}
     >
       <View style={[styles.pageHeader, { borderBottomColor: colors.border }]}>
         <View>
