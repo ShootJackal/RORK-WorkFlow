@@ -77,13 +77,13 @@ export interface ThemeColors {
 }
 
 export const LightTheme: ThemeColors = {
-  bg: '#F8F6FB',
-  bgSecondary: '#F0EDF6',
+  bg: '#F7F5FA',
+  bgSecondary: '#EFECF5',
   bgCard: '#FFFFFF',
-  bgInput: '#F3F0F8',
-  bgElevated: '#E8E4F0',
-  border: '#E2DCED',
-  borderLight: '#EBE6F3',
+  bgInput: '#F2EFF8',
+  bgElevated: '#E6E2EE',
+  border: '#E0DBEB',
+  borderLight: '#EAE5F2',
   borderFocus: '#8B6FC0',
 
   textPrimary: '#1C1926',

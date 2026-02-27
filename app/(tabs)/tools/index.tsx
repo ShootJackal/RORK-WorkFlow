@@ -644,7 +644,7 @@ export default function ToolsScreen() {
               <Text style={[styles.brandText, { color: colors.accent }]}>TOOLS</Text>
               <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
             </View>
-            <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>Settings & Utilities</Text>
+            <Text style={[styles.brandSub, { color: colors.textSecondary }]}>Settings & Utilities</Text>
           </View>
           <View style={styles.pageHeaderRight}>
             <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
@@ -845,13 +845,13 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 100 },
   pageHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1 },
   pageHeaderRight: { alignItems: "flex-end", gap: 4 },
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
-  brandText: { fontSize: 28, fontWeight: "800" as const, letterSpacing: 6 },
-  brandSub: { fontSize: 10, letterSpacing: 1.5, marginTop: 4, textTransform: "uppercase" as const },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 0 },
+  headerAccent: { width: 0, height: 0 },
+  brandText: { fontSize: 30, fontWeight: "800" as const, letterSpacing: 3 },
+  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.5, marginTop: 4 },
   headerLogo: {
-    width: 32, height: 32, borderRadius: 8,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    width: 36, height: 36, borderRadius: 10,
+    shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8,
   },
   adminBadge: {
     flexDirection: "row", alignItems: "center", gap: 4,

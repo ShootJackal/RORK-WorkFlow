@@ -753,7 +753,7 @@ const liveStyles = StyleSheet.create({
   },
   topBarLeft: { flex: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brandText: { fontSize: 32, fontWeight: "800" as const, letterSpacing: 7 },
+  brandText: { fontSize: 32, fontWeight: "800" as const, letterSpacing: 4 },
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",

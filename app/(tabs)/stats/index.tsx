@@ -183,7 +183,7 @@ const compStyles = StyleSheet.create({
 });
 
 export default function StatsScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured, collectors } = useCollection();
@@ -274,7 +274,7 @@ export default function StatsScreen() {
   }, [statsQuery, leaderboardQuery, queryClient, selectedCollectorName]);
 
   const stats = statsQuery.data;
-  const cardShadow = { shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 6 };
+  const cardShadow = { shadowColor: isDark ? '#7C3AED' : colors.shadow, shadowOffset: { width: 0, height: 6 }, shadowOpacity: isDark ? 0.15 : 0.1, shadowRadius: 20, elevation: 8 };
 
   const tabItems: { key: LeaderboardTab; label: string; color: string }[] = [
     { key: "combined", label: "All", color: colors.accent },
@@ -312,14 +312,14 @@ export default function StatsScreen() {
             <Text style={[styles.brandText, { color: colors.accent }]}>STATS</Text>
             <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
           </View>
-          <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>
+          <Text style={[styles.brandSub, { color: colors.textSecondary }]}>
             {normalizeCollectorName(selectedCollector.name)}
           </Text>
         </View>
         <View style={styles.pageHeaderRight}>
           <Image source={LOGO_URI} style={styles.headerLogo} contentFit="contain" />
           {selectedRig !== "" && (
-            <Text style={[styles.rigBadge, { color: colors.textMuted, fontFamily: FONT_MONO }]}>{selectedRig}</Text>
+            <Text style={[styles.rigBadge, { color: colors.textMuted }]}>{selectedRig}</Text>
           )}
         </View>
       </View>
@@ -566,10 +566,10 @@ const styles = StyleSheet.create({
     width: 28, height: 28,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
   },
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
-  brandText: { fontSize: 28, fontWeight: "800" as const, letterSpacing: 6 },
-  brandSub: { fontSize: 10, letterSpacing: 1.5, marginTop: 4, textTransform: "uppercase" as const },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 0 },
+  headerAccent: { width: 0, height: 0 },
+  brandText: { fontSize: 30, fontWeight: "800" as const, letterSpacing: 3 },
+  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.5, marginTop: 4 },
   rigBadge: { fontSize: 9, letterSpacing: 0.5 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 },
   sectionLabel: { fontSize: 10, letterSpacing: 1.4, fontWeight: "700" as const },

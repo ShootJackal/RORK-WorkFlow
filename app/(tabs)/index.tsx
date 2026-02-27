@@ -94,7 +94,7 @@ const logStyles = StyleSheet.create({
 });
 
 export default function DashboardScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const {
     configured,
@@ -219,11 +219,11 @@ export default function DashboardScreen() {
   }, [colors]);
 
   const cardShadow = {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowColor: isDark ? '#7C3AED' : colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: isDark ? 0.15 : 0.1,
+    shadowRadius: 20,
+    elevation: 8,
   };
 
   return (
@@ -249,7 +249,7 @@ export default function DashboardScreen() {
                 </Text>
                 <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
               </View>
-              <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>
+              <Text style={[styles.brandSub, { color: colors.textSecondary }]}>
                 {selectedCollector ? `${selectedCollector.name.split(" ")[0]}'s Workspace` : "Task Management"}
               </Text>
             </View>
@@ -510,25 +510,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 18,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+    marginBottom: 20,
+    paddingBottom: 14,
+    borderBottomWidth: 0,
   },
   headerLeft: {},
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
-  headerRight: { alignItems: "flex-end", gap: 4 },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 0 },
+  headerAccent: { width: 0, height: 0 },
+  headerRight: { alignItems: "flex-end", gap: 6 },
   headerLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  brandText: { fontSize: 28, fontWeight: "800" as const, letterSpacing: 6 },
-  brandSub: { fontSize: 10, letterSpacing: 1.5, marginTop: 4, textTransform: "uppercase" as const },
+  brandText: { fontSize: 30, fontWeight: "800" as const, letterSpacing: 3 },
+  brandSub: { fontSize: 12, fontWeight: "500" as const, letterSpacing: 0.5, marginTop: 4 },
   rigLabel: { fontSize: 9, letterSpacing: 0.5 },
   openPill: {
     flexDirection: "row",
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   noticeText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  formCard: { borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1 },
+  formCard: { borderRadius: 22, padding: 20, marginBottom: 16, borderWidth: 1 },
   formField: { paddingVertical: 2 },
   fieldLabel: { fontSize: 11, fontWeight: "700" as const, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" },
   fieldRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
