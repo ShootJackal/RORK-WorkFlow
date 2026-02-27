@@ -6,7 +6,9 @@
     "start": "bunx rork start -p 094cj7znaledf0g1nwjzv --tunnel",
     "start-web": "bunx rork start -p 094cj7znaledf0g1nwjzv --web --tunnel",
     "start-web-dev": "DEBUG=expo* bunx rork start -p 094cj7znaledf0g1nwjzv --web --tunnel",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build": "npx expo export --platform web",
+    "build:web": "npx expo export --platform web"
   },
   "dependencies": {
     "@expo-google-fonts/lexend": "^0.4.1",

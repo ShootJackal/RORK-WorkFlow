@@ -126,24 +126,30 @@ For detailed instructions, visit [Expo's Google Play deployment guide](https://d
 
 ### **Publish as a Website**
 
-Your React Native app can also run on the web:
+Your React Native app can also run on the web.
 
-1. **Build for web**:
+**Option 1: Vercel (recommended – already configured)**
 
-   ```bash
-   eas build --platform web
-   ```
+1. Push this repo to GitHub (if you haven’t already).
+2. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
+3. Click **Add New** → **Project** and import this repository.
+4. Vercel will use the repo’s `vercel.json`: build command `npx expo export --platform web`, output directory `dist`, and `bun install`.
+5. Click **Deploy**. Your app will be live at a `*.vercel.app` URL.
 
+To deploy from the CLI: install the [Vercel CLI](https://vercel.com/cli), then run `vercel` in the project root.
+
+**Option 2: EAS Hosting**
+
+1. **Build for web**: `eas build --platform web`
 2. **Deploy with EAS Hosting**:
    ```bash
    eas hosting:configure
    eas hosting:deploy
    ```
 
-Alternative web deployment options:
+**Option 3: Netlify**
 
-- **Vercel**: Deploy directly from your GitHub repository
-- **Netlify**: Connect your GitHub repo to Netlify for automatic deployments
+- Connect your GitHub repo at [netlify.com](https://netlify.com). Set **Build command** to `npx expo export --platform web` and **Publish directory** to `dist`.
 
 ## App Features
 
