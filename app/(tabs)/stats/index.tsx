@@ -185,7 +185,7 @@ export default function StatsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured, collectors } = useCollection();
+  const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured } = useCollection();
   const [refreshing, setRefreshing] = useState(false);
   const [lbTab, setLbTab] = useState<LeaderboardTab>("combined");
   const syncPulse = useRef(new Animated.Value(0)).current;

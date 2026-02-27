@@ -44,7 +44,7 @@ interface TickerSegment {
 }
 
 function NewsTicker({ segments }: { segments: TickerSegment[] }) {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const pillSlide = useRef(new Animated.Value(0)).current;
@@ -107,7 +107,7 @@ function NewsTicker({ segments }: { segments: TickerSegment[] }) {
       if (animRef.current) animRef.current.stop();
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [segments.length]);
+  }, [segments, pillSlide, startScroll]);
 
   if (!seg) return null;
 

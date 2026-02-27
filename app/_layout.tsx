@@ -182,7 +182,7 @@ function BootSequence({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-const { width: SW, height: SH } = Dimensions.get("window");
+const { width: SW } = Dimensions.get("window");
 
 const bootStyles = StyleSheet.create({
   container: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", zIndex: 999 },

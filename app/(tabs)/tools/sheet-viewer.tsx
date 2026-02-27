@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { RefreshCw, AlertCircle, Clock, RotateCcw } from "lucide-react-native";
@@ -19,8 +18,6 @@ import {
   fetchTodayLog,
 } from "@/services/googleSheets";
 import type { TaskActualRow } from "@/types";
-
-const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
 
 function StatusBadge({ status, colors }: { status: string; colors: any }) {
   const upper = status.toUpperCase();
@@ -195,7 +192,7 @@ function TaskActualsView({ configured }: { configured: boolean }) {
     retry: 2,
   });
 
-  const tasks = taskQuery.data ?? [];
+  const tasks = useMemo(() => taskQuery.data ?? [], [taskQuery.data]);
 
   const grouped = useMemo(() => {
     const done: TaskActualRow[] = [];
