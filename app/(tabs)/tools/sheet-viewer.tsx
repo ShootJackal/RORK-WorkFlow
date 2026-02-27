@@ -209,7 +209,7 @@ function TaskActualsView({ configured }: { configured: boolean }) {
     const other: TaskActualRow[] = [];
 
     for (const t of tasks) {
-      const st = t.status.toUpperCase();
+      const st = String(t.status ?? "").toUpperCase();
       if (st === "DONE") done.push(t);
       else if (st === "RECOLLECT") recollect.push(t);
       else if (st === "IN_PROGRESS") active.push(t);
@@ -347,7 +347,6 @@ export default function SheetViewerScreen() {
   const queryClient = useQueryClient();
 
   const handleRefresh = useCallback(() => {
-    console.log("[SheetViewer] Refreshing:", sheetId);
     if (sheetId === "log") {
       queryClient.invalidateQueries({ queryKey: ["fullLog"] });
       queryClient.invalidateQueries({ queryKey: ["todayLog"] });

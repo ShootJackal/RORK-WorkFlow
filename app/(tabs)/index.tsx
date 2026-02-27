@@ -129,6 +129,7 @@ export default function DashboardScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const searchAnim = useRef(new Animated.Value(0)).current;
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     Animated.parallel([
@@ -168,8 +169,18 @@ export default function DashboardScreen() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     refreshData();
-    setTimeout(() => setRefreshing(false), 1200);
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    refreshTimeoutRef.current = setTimeout(() => setRefreshing(false), 1200);
   }, [refreshData]);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+        refreshTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleAssign = useCallback(async () => {
     try { await assignTask(); } catch (e: unknown) {
