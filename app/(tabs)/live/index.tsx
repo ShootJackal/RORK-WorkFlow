@@ -562,16 +562,11 @@ export default function LiveScreen() {
 
   return (
     <View style={[liveStyles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
-      <View style={[liveStyles.topBar, {
-        shadowColor: colors.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-      }]}>
+      <View style={liveStyles.topBar}>
         <View style={liveStyles.topBarLeft}>
           <View style={liveStyles.brandRow}>
-            <Text style={[liveStyles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
-              TASKFLOW
+            <Text style={[liveStyles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>
+              TaskFlow
             </Text>
             <View style={[liveStyles.liveBadge, {
               backgroundColor: isOnline ? livePillColor + '14' : colors.cancel + '14',
@@ -583,21 +578,13 @@ export default function LiveScreen() {
               </Text>
             </View>
           </View>
-          <Text style={[liveStyles.rigCountText, { color: colors.textMuted, fontFamily: FONT_MONO }]}>
+          <Text style={[liveStyles.rigCountText, { color: colors.textMuted, fontFamily: "Lexend_400Regular" }]}>
             {totalRigCount} rigs active
           </Text>
         </View>
         <View style={liveStyles.topBarRight}>
           <TouchableOpacity
-            style={[liveStyles.iconBtn, {
-              backgroundColor: colors.bgCard,
-              borderColor: colors.border,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 6,
-              elevation: 3,
-            }]}
+            style={[liveStyles.iconBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
             onPress={handleToggleTheme}
             activeOpacity={0.7}
             testID="theme-toggle-live"
@@ -605,36 +592,12 @@ export default function LiveScreen() {
             {isDark ? <Sun size={15} color={colors.alertYellow} /> : <Moon size={15} color={colors.textSecondary} />}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[liveStyles.iconBtn, {
-              backgroundColor: colors.bgCard,
-              borderColor: colors.border,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 6,
-              elevation: 3,
-            }]}
+            style={[liveStyles.iconBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowGuide(true); }}
             activeOpacity={0.7}
             testID="guide-btn"
           >
             <BookOpen size={15} color={colors.accent} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[liveStyles.iconBtn, {
-              backgroundColor: colors.accentSoft,
-              borderColor: colors.accentDim,
-              shadowColor: colors.accent,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.15,
-              shadowRadius: 8,
-              elevation: 4,
-            }]}
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/stats' as any); }}
-            activeOpacity={0.7}
-            testID="ranks-btn"
-          >
-            <Trophy size={16} color={colors.accent} />
           </TouchableOpacity>
         </View>
       </View>
@@ -753,7 +716,7 @@ const liveStyles = StyleSheet.create({
   },
   topBarLeft: { flex: 1 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brandText: { fontSize: 28, fontWeight: "900" as const, letterSpacing: 6 },
+  brandText: { fontSize: 34, fontWeight: "300" as const, letterSpacing: 1 },
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",

@@ -94,7 +94,7 @@ const logStyles = StyleSheet.create({
 });
 
 export default function DashboardScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const {
     configured,
@@ -219,11 +219,11 @@ export default function DashboardScreen() {
   }, [colors]);
 
   const cardShadow = {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowColor: isDark ? '#7C3AED' : colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: isDark ? 0.15 : 0.1,
+    shadowRadius: 20,
+    elevation: 8,
   };
 
   return (
@@ -243,13 +243,10 @@ export default function DashboardScreen() {
         >
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerLeft}>
-              <View style={styles.headerTitleRow}>
-                <Text style={[styles.brandText, { color: colors.accent, fontFamily: FONT_MONO }]}>
-                  COLLECT
-                </Text>
-                <View style={[styles.headerAccent, { backgroundColor: colors.accent }]} />
-              </View>
-              <Text style={[styles.brandSub, { color: colors.textMuted, fontFamily: FONT_MONO }]}>
+              <Text style={[styles.brandText, { color: colors.accent, fontFamily: "Lexend_300Light" }]}>
+                Collect
+              </Text>
+              <Text style={[styles.brandSub, { color: colors.textSecondary, fontFamily: "Lexend_400Regular" }]}>
                 {selectedCollector ? `${selectedCollector.name.split(" ")[0]}'s Workspace` : "Task Management"}
               </Text>
             </View>
@@ -260,7 +257,7 @@ export default function DashboardScreen() {
                 contentFit="contain"
               />
               {selectedRig !== "" && (
-                <Text style={[styles.rigLabel, { color: colors.textMuted, fontFamily: FONT_MONO }]}>{selectedRig}</Text>
+                <Text style={[styles.rigLabel, { color: colors.textMuted }]}>{selectedRig}</Text>
               )}
               {openTasks.length > 0 && (
                 <View style={[styles.openPill, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
@@ -510,24 +507,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 18,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+    marginBottom: 20,
+    paddingBottom: 14,
+    borderBottomWidth: 0,
   },
   headerLeft: {},
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  headerAccent: { width: 3, height: 20, borderRadius: 2, opacity: 0.5 },
-  headerRight: { alignItems: "flex-end", gap: 4 },
+  headerRight: { alignItems: "flex-end", gap: 6 },
   headerLogo: {
-    width: 28,
-    height: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
   },
-  brandText: { fontSize: 24, fontWeight: "900" as const, letterSpacing: 5 },
-  brandSub: { fontSize: 9, letterSpacing: 1, marginTop: 2 },
+  brandText: { fontSize: 32, fontWeight: "300" as const, letterSpacing: 1 },
+  brandSub: { fontSize: 13, fontWeight: "400" as const, letterSpacing: 0.3, marginTop: 3 },
   rigLabel: { fontSize: 9, letterSpacing: 0.5 },
   openPill: {
     flexDirection: "row",
@@ -549,7 +545,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   noticeText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  formCard: { borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1 },
+  formCard: { borderRadius: 22, padding: 20, marginBottom: 16, borderWidth: 1 },
   formField: { paddingVertical: 2 },
   fieldLabel: { fontSize: 11, fontWeight: "700" as const, marginBottom: 6, letterSpacing: 0.4, textTransform: "uppercase" },
   fieldRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },

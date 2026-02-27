@@ -273,8 +273,9 @@ function TaskActualsView({ configured }: { configured: boolean }) {
 
 function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; colors: any; showRecollectTime?: boolean }) {
   const isRecollect = task.status.toUpperCase() === "RECOLLECT";
-  const recollectNeeded = isRecollect && task.remainingHours > 0 ? task.remainingHours : 0;
-  const goodGap = isRecollect ? Math.max(task.collectedHours - task.goodHours, 0) : 0;
+  const remaining = Math.round(task.remainingHours * 100) / 100;
+  const recollectNeeded = isRecollect && remaining > 0 ? remaining : 0;
+  const goodGap = isRecollect ? Math.max(Math.round((task.collectedHours - task.goodHours) * 100) / 100, 0) : 0;
 
   return (
     <View style={[viewStyles.taskCard, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>
@@ -285,7 +286,7 @@ function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; col
       <View style={viewStyles.taskStats}>
         <StatChip label="Collected" value={`${Number(task.collectedHours).toFixed(2)}h`} color={colors.accent} />
         <StatChip label="Good" value={`${Number(task.goodHours).toFixed(2)}h`} color={colors.complete} />
-        <StatChip label="Remaining" value={`${Number(task.remainingHours).toFixed(2)}h`} color={task.remainingHours > 0 ? colors.statusPending : colors.textMuted} />
+        <StatChip label="Remaining" value={`${remaining.toFixed(2)}h`} color={remaining > 0 ? colors.statusPending : colors.textMuted} />
       </View>
       {showRecollectTime && isRecollect && (
         <View style={[viewStyles.recollectInfo, { backgroundColor: colors.cancelBg, borderColor: colors.cancel + '20' }]}>
