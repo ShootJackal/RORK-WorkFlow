@@ -145,21 +145,37 @@ function CompactTimer() {
   }, [running, showPicker, pickerFade]);
 
   useEffect(() => {
-    if (running && secondsLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft(s => {
-          if (s <= 1) {
-            setRunning(false);
-            setFinished(true);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            return 0;
+    if (!running) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
           }
-          return s - 1;
-        });
-      }, 1000);
-    } else if (intervalRef.current) { clearInterval(intervalRef.current); }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [running, secondsLeft]);
+          setRunning(false);
+          setFinished(true);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [running]);
 
   const activeOption = TIMER_OPTIONS.find(p => p.mins === selectedMinutes);
   const ringColor = finished ? colors.cancel : running ? (activeOption?.color ?? colors.accent) : colors.textMuted;
@@ -592,10 +608,20 @@ export default function ToolsScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const adminModalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
   }, [fadeAnim]);
+
+  useEffect(() => {
+    return () => {
+      if (adminModalTimeoutRef.current) {
+        clearTimeout(adminModalTimeoutRef.current);
+        adminModalTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const collectorOptions = useMemo(() => {
     const opts = collectors.map(c => ({ value: c.name, label: c.name }));
@@ -616,7 +642,8 @@ export default function ToolsScreen() {
         return;
       }
       // Allow the picker modal to close before opening the password modal.
-      setTimeout(() => setShowAdminModal(true), 220);
+      if (adminModalTimeoutRef.current) clearTimeout(adminModalTimeoutRef.current);
+      adminModalTimeoutRef.current = setTimeout(() => setShowAdminModal(true), 220);
       return;
     }
     selectCollector(name);
