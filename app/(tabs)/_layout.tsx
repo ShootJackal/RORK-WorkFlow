@@ -9,10 +9,12 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Platform,
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/providers/ThemeProvider";
+import { DesignTokens } from "@/constants/colors";
 import * as Haptics from "expo-haptics";
 
 const { width: FALLBACK_SCREEN_WIDTH } = Dimensions.get("window");
@@ -33,12 +35,13 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
   const { width: windowWidth } = useWindowDimensions();
   const sliderAnim = useRef(new Animated.Value(0)).current;
 
-  const { TAB_WIDTH } = useMemo(() => {
+  const { TAB_WIDTH, islandMaxWidth } = useMemo(() => {
     const safeWidth = windowWidth > 0 ? windowWidth : FALLBACK_SCREEN_WIDTH;
     const TAB_COUNT = TAB_ORDER.length;
-    const ISLAND_MARGIN = 16;
-    const ISLAND_WIDTH = Math.max(280, safeWidth - ISLAND_MARGIN * 2);
-    return { TAB_WIDTH: ISLAND_WIDTH / TAB_COUNT };
+    const ISLAND_MARGIN = DesignTokens.spacing.lg;
+    const maxW = Platform.OS === "web" ? Math.min(safeWidth, DesignTokens.maxContentWidth) : safeWidth;
+    const ISLAND_WIDTH = Math.max(280, maxW - ISLAND_MARGIN * 2);
+    return { TAB_WIDTH: ISLAND_WIDTH / TAB_COUNT, islandMaxWidth: ISLAND_WIDTH };
   }, [windowWidth]);
 
   const currentIndex = state.index;
@@ -82,13 +85,13 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
         />
       </View>
 
-      <View style={barStyles.islandWrap}>
+      <View style={[barStyles.islandWrap, { maxWidth: islandMaxWidth + 32 }]}>
         <View style={[barStyles.tintTray, {
-          borderColor: isDark ? colors.accentDim + "80" : colors.borderLight,
-          backgroundColor: isDark ? "rgba(62,54,90,0.42)" : "rgba(236,232,225,0.86)",
+          borderColor: isDark ? colors.accentDim + "60" : colors.borderLight,
+          backgroundColor: isDark ? "rgba(62,54,90,0.35)" : "rgba(236,232,225,0.82)",
         }]} pointerEvents="none">
           <BlurView
-            intensity={isDark ? 24 : 32}
+            intensity={isDark ? 20 : 28}
             tint={isDark ? "dark" : "light"}
             style={StyleSheet.absoluteFill}
           />
@@ -97,7 +100,7 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
         <View style={[barStyles.island, {
           backgroundColor: colors.tabBar,
           shadowColor: isDark ? colors.accent : colors.shadow,
-          borderColor: colors.border,
+          borderColor: isDark ? colors.border : colors.borderLight,
         }]}>
           <Animated.View style={[barStyles.slider, {
             backgroundColor: colors.accent,
@@ -162,7 +165,7 @@ export default function TabLayout() {
 const barStyles = StyleSheet.create({
   outerWrap: {
     position: "absolute", bottom: 0, left: 0, right: 0,
-    alignItems: "center", paddingHorizontal: 16,
+    alignItems: "center", paddingHorizontal: DesignTokens.spacing.lg,
   },
   fadeLayer1: { position: "absolute", bottom: -10, left: 0, right: 0, height: 150 },
   fadeLayer2: { position: "absolute", bottom: -10, left: 0, right: 0, height: 110 },
@@ -174,13 +177,14 @@ const barStyles = StyleSheet.create({
     right: 10,
     bottom: 8,
     height: 74,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: DesignTokens.radius.xxl + 6,
+    borderTopRightRadius: DesignTokens.radius.xxl + 6,
     overflow: "hidden",
   },
   islandWrap: {
     width: "100%",
     position: "relative",
+    alignSelf: "center",
   },
   tintTray: {
     position: "absolute",
@@ -188,13 +192,13 @@ const barStyles = StyleSheet.create({
     right: 10,
     bottom: -8,
     height: 46,
-    borderRadius: 24,
+    borderRadius: DesignTokens.radius.xxl,
     borderWidth: 1,
     overflow: "hidden",
   },
   island: {
-    flexDirection: "row", borderRadius: 28, borderWidth: 1, paddingVertical: 6,
-    shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.2, shadowRadius: 30, elevation: 24,
+    flexDirection: "row", borderRadius: DesignTokens.radius.xxl + 4, borderWidth: 1, paddingVertical: 6,
+    shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 20,
     position: "relative", overflow: "hidden", width: "100%",
   },
   slider: { position: "absolute", bottom: 0, height: 2.5, borderTopLeftRadius: 2, borderTopRightRadius: 2 },

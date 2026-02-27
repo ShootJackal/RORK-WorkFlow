@@ -6,20 +6,20 @@ import {
   ScrollView,
   Animated,
   Dimensions,
-  Platform,
   TouchableOpacity,
   Modal,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RefreshCw, Sun, Moon, BookOpen, X, User, Clock3 } from "lucide-react-native";
+import { RefreshCw, Sun, Moon, Snowflake, Glasses, BookOpen, X, User, Clock3 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useCollection } from "@/providers/CollectionProvider";
+import { DesignTokens } from "@/constants/colors";
+import ScreenContainer from "@/components/ScreenContainer";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTodayLog, fetchCollectorStats, fetchRecollections } from "@/services/googleSheets";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const FONT_MONO = Platform.select({ ios: "Courier New", android: "monospace", default: "monospace" });
+const FONT_MONO = DesignTokens.fontMono;
 const SF_KNOWN_NAMES = new Set(["tony a", "veronika t", "travis b"]);
 
 function normalizeCollectorName(name: string): string {
@@ -43,8 +43,8 @@ interface TickerSegment {
   speed: number;
 }
 
-function NewsTicker({ segments }: { segments: TickerSegment[] }) {
-  const { isDark } = useTheme();
+const NewsTicker = React.memo(function NewsTicker({ segments }: { segments: TickerSegment[] }) {
+  const { colors, isDark } = useTheme();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const pillSlide = useRef(new Animated.Value(0)).current;
@@ -121,8 +121,8 @@ function NewsTicker({ segments }: { segments: TickerSegment[] }) {
 
   return (
     <View style={[tickerStyles.container, {
-      backgroundColor: isDark ? '#161618' : '#F8F6F0',
-      borderBottomColor: isDark ? '#222228' : '#E8E4DA',
+      backgroundColor: colors.bgSecondary,
+      borderBottomColor: colors.border,
     }]}>
       <Animated.View style={[tickerStyles.pillWrap, {
         opacity: pillSlide.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.3, 1] }),
@@ -134,7 +134,7 @@ function NewsTicker({ segments }: { segments: TickerSegment[] }) {
           </Text>
         </View>
       </Animated.View>
-      <View style={[tickerStyles.separator, { backgroundColor: isDark ? '#2E2E34' : '#E0DCD0' }]} />
+      <View style={[tickerStyles.separator, { backgroundColor: colors.border }]} />
       <View style={tickerStyles.scrollWrap}>
         <View style={[tickerStyles.scrollHighlight, { backgroundColor: seg.color + (isDark ? '12' : '0A') }]} />
         <Animated.Text
@@ -148,21 +148,21 @@ function NewsTicker({ segments }: { segments: TickerSegment[] }) {
         >
           {tickerText}
         </Animated.Text>
-        <View style={[tickerStyles.fadeEdgeLeft, { backgroundColor: isDark ? '#161618' : '#F8F6F0' }]} pointerEvents="none" />
-        <View style={[tickerStyles.fadeEdgeRight, { backgroundColor: isDark ? '#161618' : '#F8F6F0' }]} pointerEvents="none" />
+        <View style={[tickerStyles.fadeEdgeLeft, { backgroundColor: colors.bgSecondary }]} pointerEvents="none" />
+        <View style={[tickerStyles.fadeEdgeRight, { backgroundColor: colors.bgSecondary }]} pointerEvents="none" />
       </View>
     </View>
   );
-}
+});
 
-function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }: {
+const CmdTerminal = React.memo(function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }: {
   lines: TerminalLine[];
   isLoading: boolean;
   activeRigs: number;
   onResync: () => void;
   onPersonalStats: () => void;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const cursorAnim = useRef(new Animated.Value(0)).current;
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -189,8 +189,8 @@ function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }
     };
   }, [lines.length]);
 
-  const termBg = isDark ? '#0C0C0E' : '#FDFCF8';
-  const termBorder = isDark ? '#1E1E24' : '#E5E1D8';
+  const termBg = colors.terminalBg;
+  const termBorder = colors.border;
 
   const getLineColor = useCallback((line: TerminalLine) => {
     if (line.type === "header") return colors.accent;
@@ -298,9 +298,9 @@ function CmdTerminal({ lines, isLoading, activeRigs, onResync, onPersonalStats }
       </ScrollView>
     </View>
   );
-}
+});
 
-function GuideModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+const GuideModal = React.memo(function GuideModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { colors } = useTheme();
   const steps = [
     { num: "01", title: "Select Your Profile", desc: "Go to Tools and pick your name & rig." },
@@ -334,11 +334,10 @@ function GuideModal({ visible, onClose }: { visible: boolean; onClose: () => voi
       </View>
     </Modal>
   );
-}
+});
 
 export default function LiveScreen() {
-  const { colors, isDark, toggleTheme } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors, isDark, resolvedMode, toggleTheme } = useTheme();
   const { configured, collectors, todayLog, selectedCollectorName } = useCollection();
 
   const [liveLines, setLiveLines] = useState<TerminalLine[]>([]);
@@ -543,7 +542,7 @@ export default function LiveScreen() {
   }, [allLines, configured]);
 
   useEffect(() => {
-    const clockInterval = setInterval(() => setClockNow(new Date()), 100);
+    const clockInterval = setInterval(() => setClockNow(new Date()), 1000);
     return () => clearInterval(clockInterval);
   }, []);
 
@@ -593,12 +592,12 @@ export default function LiveScreen() {
   const livePillColor = isDark ? colors.terminalGreen : '#2D8A56';
   const liveClock = useMemo(() => {
     const d = clockNow;
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}.${String(d.getMilliseconds()).padStart(3, "0")}`;
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
   }, [clockNow]);
 
   return (
-    <View style={[liveStyles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
-      <View style={[liveStyles.topBar, { borderBottomColor: colors.border }]}>
+    <ScreenContainer>
+      <View style={[liveStyles.topBar, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
         <View style={liveStyles.topBarLeft}>
           <View style={[liveStyles.headerTag, { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}>
             <Text style={[liveStyles.headerTagText, { color: colors.accent }]}>LIVE MONITOR</Text>
@@ -650,7 +649,10 @@ export default function LiveScreen() {
             activeOpacity={0.7}
             testID="theme-toggle-live"
           >
-            {isDark ? <Sun size={15} color={colors.alertYellow} /> : <Moon size={15} color={colors.textSecondary} />}
+            {resolvedMode === "dark" ? <Moon size={15} color={colors.accent} /> :
+             resolvedMode === "frosted" ? <Snowflake size={15} color={colors.accent} /> :
+             resolvedMode === "tinted" ? <Glasses size={15} color={colors.accent} /> :
+             <Sun size={15} color={colors.alertYellow} />}
           </TouchableOpacity>
           <TouchableOpacity
             style={[liveStyles.iconBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
@@ -676,7 +678,7 @@ export default function LiveScreen() {
       </ScrollView>
 
       <GuideModal visible={showGuide} onClose={() => setShowGuide(false)} />
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -708,12 +710,12 @@ const tickerStyles = StyleSheet.create({
 });
 
 const cmdStyles = StyleSheet.create({
-  window: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
+  window: { borderRadius: DesignTokens.radius.lg, borderWidth: 1, overflow: "hidden" },
   titleBar: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: DesignTokens.spacing.sm,
+    paddingHorizontal: DesignTokens.spacing.md,
     borderBottomWidth: 1,
   },
   dots: { flexDirection: "row", gap: 5 },
@@ -756,8 +758,8 @@ const cmdStyles = StyleSheet.create({
 });
 
 const guideStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center", padding: 24 },
-  card: { width: "100%", maxWidth: 380, borderRadius: 20, borderWidth: 1, padding: 20 },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center", padding: DesignTokens.spacing.xxl },
+  card: { width: "100%", maxWidth: 380, borderRadius: DesignTokens.radius.xl, borderWidth: 1, padding: DesignTokens.spacing.xl },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   cardTitle: { fontSize: 14, fontWeight: "800" as const, letterSpacing: 3 },
   step: { flexDirection: "row", alignItems: "flex-start", gap: 12, paddingVertical: 14 },
@@ -769,15 +771,15 @@ const guideStyles = StyleSheet.create({
 });
 
 const liveStyles = StyleSheet.create({
-  container: { flex: 1 },
   topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+    marginHorizontal: DesignTokens.spacing.md,
+    marginTop: DesignTokens.spacing.sm,
+    padding: DesignTokens.spacing.lg,
+    borderRadius: DesignTokens.radius.xl,
+    borderWidth: 1,
   },
   topBarLeft: { flex: 1 },
   headerTag: {
@@ -833,5 +835,5 @@ const liveStyles = StyleSheet.create({
     justifyContent: "center",
   },
   terminalScroll: { flex: 1 },
-  terminalContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 120 },
+  terminalContent: { paddingHorizontal: DesignTokens.spacing.md, paddingTop: 10, paddingBottom: 120 },
 });
