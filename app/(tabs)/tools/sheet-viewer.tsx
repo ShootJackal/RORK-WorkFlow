@@ -286,7 +286,7 @@ function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; col
       <View style={viewStyles.taskStats}>
         <StatChip label="Collected" value={`${Number(task.collectedHours).toFixed(2)}h`} color={colors.accent} />
         <StatChip label="Good" value={`${Number(task.goodHours).toFixed(2)}h`} color={colors.complete} />
-        <StatChip label="Remaining" value={`${Number(task.remainingHours).toFixed(2)}h`} color={task.remainingHours > 0 ? colors.statusPending : colors.textMuted} />
+        <StatChip label="Remaining" value={`${remaining.toFixed(2)}h`} color={remaining > 0 ? colors.statusPending : colors.textMuted} />
       </View>
       {showRecollectTime && isRecollect && (
         <View style={[viewStyles.recollectInfo, { backgroundColor: colors.cancelBg, borderColor: colors.cancel + '20' }]}>
