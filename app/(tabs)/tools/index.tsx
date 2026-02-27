@@ -372,18 +372,7 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
   });
 
   const data = adminQuery.data;
-  const taskActuals = taskActualsQuery.data ?? [];
-
-  if (adminQuery.isLoading) {
-    return (
-      <View style={adminStyles.loadingWrap}>
-        <ActivityIndicator size="small" color={colors.accent} />
-        <Text style={[adminStyles.loadingText, { color: colors.textMuted }]}>Loading dashboard...</Text>
-      </View>
-    );
-  }
-
-  if (!data) return null;
+  const taskActuals = useMemo(() => taskActualsQuery.data ?? [], [taskActualsQuery.data]);
 
   const derivedCounts = useMemo(() => {
     if (taskActuals.length === 0) return null;
@@ -412,6 +401,17 @@ function AdminOverview({ colors, isAdmin }: { colors: ReturnType<typeof useTheme
 
     return { totalTasks, completedTasks, recollectTasks, inProgressTasks };
   }, [taskActuals]);
+
+  if (adminQuery.isLoading) {
+    return (
+      <View style={adminStyles.loadingWrap}>
+        <ActivityIndicator size="small" color={colors.accent} />
+        <Text style={[adminStyles.loadingText, { color: colors.textMuted }]}>Loading dashboard...</Text>
+      </View>
+    );
+  }
+
+  if (!data) return null;
 
   const totalTasks = derivedCounts?.totalTasks ?? data.totalTasks;
   const completedTasks = derivedCounts?.completedTasks ?? data.completedTasks;
