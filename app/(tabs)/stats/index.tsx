@@ -189,7 +189,6 @@ export default function StatsScreen() {
   const { selectedCollector, selectedCollectorName, selectedRig, todayLog, configured, collectors } = useCollection();
   const [refreshing, setRefreshing] = useState(false);
   const [lbTab, setLbTab] = useState<LeaderboardTab>("combined");
-  const [selectedWeek, setSelectedWeek] = useState<"current" | "last">("current");
 
   const normalizedName = useMemo(() => normalizeCollectorName(selectedCollectorName), [selectedCollectorName]);
 
@@ -368,23 +367,6 @@ export default function StatsScreen() {
       <View style={[styles.sectionHeader, { marginTop: 24 }]}>
         <Trophy size={12} color={colors.gold} />
         <Text style={[styles.sectionLabel, { color: colors.gold }]}>LEADERBOARD</Text>
-      </View>
-
-      <View style={[styles.weekToggleRow, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-        <TouchableOpacity
-          style={[styles.weekToggleBtn, selectedWeek === "current" && { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}
-          onPress={() => setSelectedWeek("current")}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.weekToggleText, { color: selectedWeek === "current" ? colors.accent : colors.textMuted, fontWeight: selectedWeek === "current" ? "700" as const : "500" as const }]}>This Week</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.weekToggleBtn, selectedWeek === "last" && { backgroundColor: colors.accentSoft, borderColor: colors.accentDim }]}
-          onPress={() => setSelectedWeek("last")}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.weekToggleText, { color: selectedWeek === "last" ? colors.accent : colors.textMuted, fontWeight: selectedWeek === "last" ? "700" as const : "500" as const }]}>Last Week</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={[styles.lbTabRow, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
@@ -591,13 +573,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "transparent",
   },
   lbTabText: { fontSize: 12, letterSpacing: 0.3 },
-  weekToggleRow: {
-    flexDirection: "row", gap: 8, marginBottom: 10, padding: 4, borderRadius: 14, borderWidth: 1,
-  },
-  weekToggleBtn: {
-    flex: 1, alignItems: "center", paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: "transparent",
-  },
-  weekToggleText: { fontSize: 13, letterSpacing: 0.3 },
   leaderboardCard: { borderRadius: 20, padding: 14, marginBottom: 14, borderWidth: 1 },
   lbHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 4, paddingBottom: 8, marginBottom: 4 },
   lbHeaderText: { fontSize: 10, fontWeight: "600" as const, letterSpacing: 0.5, textTransform: "uppercase" },
