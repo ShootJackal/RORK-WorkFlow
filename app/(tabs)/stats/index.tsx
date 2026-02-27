@@ -313,7 +313,7 @@ export default function StatsScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.bg, paddingTop: insets.top }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
     >
@@ -574,7 +574,7 @@ export default function StatsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: 20 },
   pageHeader: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end",
     marginBottom: 22, paddingBottom: 12, borderBottomWidth: 1,
