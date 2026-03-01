@@ -7,8 +7,9 @@
     "start-web": "bunx rork start -p 094cj7znaledf0g1nwjzv --web --tunnel",
     "start-web-dev": "DEBUG=expo* bunx rork start -p 094cj7znaledf0g1nwjzv --web --tunnel",
     "lint": "expo lint",
-    "build": "npx expo export --platform web",
-    "build:web": "npx expo export --platform web"
+    "prepare:web": "node scripts/prepare-pwa.js",
+    "build": "npm run prepare:web && npx expo export -p web",
+    "build:web": "npm run prepare:web && npx expo export -p web"
   },
   "dependencies": {
     "@expo-google-fonts/lexend": "^0.4.1",

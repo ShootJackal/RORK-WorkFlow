@@ -57,6 +57,15 @@ This project is built with the most popular native mobile cross-platform technic
 
 Run `bun start-web` to test in a web browser. Note: The browser preview is great for quick testing, but some native features may not be available.
 
+### **Use as an app on your phone (PWA)**
+
+The web build is a **Progressive Web App (PWA)**. Once deployed (e.g. on Vercel), open your site on your phone in the browser, then:
+
+- **iPhone:** Safari → Share → **Add to Home Screen**. The app opens in standalone mode (no browser bar).
+- **Android:** Chrome → menu (⋮) → **Add to Home screen** or **Install app**.
+
+You get one experience: use it in the browser anytime, or install it for an app-like icon and fullscreen. No separate APK or App Store build required.
+
 ### **iOS Simulator / Android Emulator**
 
 You can test Rork apps in Expo Go or Rork iOS app. You don't need XCode or Android Studio for most features.
