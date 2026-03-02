@@ -43,6 +43,7 @@ function doGet(e) {
       case 'getFullLog':            result = handleGetFullLog(e.parameter.collector || ''); break;
       case 'getTaskActualsSheet':   result = handleGetTaskActuals(); break;
       case 'getAdminDashboardData': result = handleGetAdminDashboard(); break;
+      case 'getActiveRigsCount':    result = handleGetActiveRigsCount(); break;
       case 'getAppCache':           result = handleGetAppCache(); break;
       case 'refreshCache':          result = handleRefreshCache(); break;
       default:
@@ -403,12 +404,41 @@ function handleGetAdminDashboard() {
     if (rn) taskReqs.push({ taskName: rn, requiredGoodHours: safeNum(reqData[r][1]) });
   }
 
+  var activeRigsToday = getActiveRigsToday();
   return {
     totalTasks: totalTasks, completedTasks: completedTasks, inProgressTasks: inProgressTasks,
     recollectTasks: recollectTasks, recollections: recollections,
     totalCollectors: totalCollectors, totalHoursUploaded: Math.round(totalHoursUploaded * 100) / 100,
-    collectorSummary: collectorSummary, taskRequirements: taskReqs
+    collectorSummary: collectorSummary, taskRequirements: taskReqs,
+    activeRigsToday: activeRigsToday
   };
+}
+
+/**
+ * Count unique rigs that have an upload in CA_TAGGED (Collector Actuals) with date = today.
+ * At midnight, no uploads are "today" yet, so returns 0 until the next upload hits.
+ */
+function getActiveRigsToday() {
+  var taggedData;
+  try { taggedData = getSheetData(SHEETS.CA_TAGGED); } catch(e) { return 0; }
+  var today = new Date();
+  var todayStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  var rigsToday = {};
+  for (var i = 1; i < taggedData.length; i++) {
+    var row = taggedData[i];
+    var cellDate = row[0];
+    var dateStr = cellDate instanceof Date
+      ? Utilities.formatDate(cellDate, Session.getScriptTimeZone(), 'yyyy-MM-dd')
+      : (typeof cellDate === 'number' ? Utilities.formatDate(new Date((cellDate - 25569) * 86400 * 1000), Session.getScriptTimeZone(), 'yyyy-MM-dd') : safeStr(cellDate).slice(0, 10));
+    if (dateStr !== todayStr) continue;
+    var rigId = safeStr(row[1]).toLowerCase();
+    if (rigId) rigsToday[rigId] = true;
+  }
+  return Object.keys(rigsToday).length;
+}
+
+function handleGetActiveRigsCount() {
+  return { activeRigsToday: getActiveRigsToday() };
 }
 
 function handleGetAppCache() {

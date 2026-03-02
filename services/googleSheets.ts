@@ -22,6 +22,7 @@ const CACHE_TTL_MS: Record<string, number> = {
   getTaskActualsSheet: 60 * 1000,
   getAdminDashboardData: 60 * 1000,
   getTodayLog: 30 * 1000,
+  getActiveRigsCount: 60 * 1000,
 };
 
 const STORAGE_TTL_MS: Record<string, number> = {
@@ -34,6 +35,7 @@ const STORAGE_TTL_MS: Record<string, number> = {
   getTaskActualsSheet: 10 * 60 * 1000,
   getAdminDashboardData: 10 * 60 * 1000,
   getTodayLog: 2 * 60 * 1000,
+  getActiveRigsCount: 2 * 60 * 1000,
 };
 
 function getCached<T>(key: string): T | null {
@@ -373,6 +375,14 @@ export async function fetchTaskActualsData(): Promise<TaskActualRow[]> {
 
 export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
   return apiGet<AdminDashboardData>("getAdminDashboardData");
+}
+
+export interface ActiveRigsCount {
+  activeRigsToday: number;
+}
+
+export async function fetchActiveRigsCount(): Promise<ActiveRigsCount> {
+  return apiGet<ActiveRigsCount>("getActiveRigsCount");
 }
 
 function normalizeRegion(region: string): string {

@@ -132,6 +132,7 @@ export interface AdminDashboardData {
   recollectTasks: number;
   totalCollectors?: number;
   totalHoursUploaded?: number;
+  activeRigsToday?: number;
   collectorSummary?: CollectorSummary[];
   taskRequirements?: TaskRequirement[];
 }

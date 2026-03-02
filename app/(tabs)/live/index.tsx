@@ -16,7 +16,7 @@ import { useCollection } from "@/providers/CollectionProvider";
 import { DesignTokens } from "@/constants/colors";
 import ScreenContainer from "@/components/ScreenContainer";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTodayLog, fetchCollectorStats, fetchRecollections } from "@/services/googleSheets";
+import { fetchTodayLog, fetchCollectorStats, fetchRecollections, fetchActiveRigsCount } from "@/services/googleSheets";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const FONT_MONO = DesignTokens.fontMono;
@@ -374,6 +374,14 @@ export default function LiveScreen() {
     retry: 3,
   });
 
+  const activeRigsQuery = useQuery({
+    queryKey: ["activeRigsCount"],
+    queryFn: () => fetchActiveRigsCount(),
+    enabled: configured,
+    staleTime: 60000,
+    refetchInterval: 60000,
+  });
+
   const recollectItems = useMemo(() => {
     const sheetItems = recollectionsQuery.data;
     if (sheetItems && sheetItems.length > 0) return sheetItems;
@@ -396,14 +404,19 @@ export default function LiveScreen() {
     return { mxCollectors: mx, sfCollectors: sf };
   }, [collectors]);
 
-  const totalRigCount = useMemo(() => {
+  const totalRigCountFallback = useMemo(() => {
     const mxRigs = mxCollectors.reduce((s, c) => s + c.rigs.length, 0);
     const sfRigs = sfCollectors.length > 0 ? sfCollectors.reduce((s, c) => s + c.rigs.length, 0) : 3;
     return mxRigs + sfRigs;
   }, [mxCollectors, sfCollectors]);
 
+  /** Active rigs = rigs with an upload today in Collector Actuals (CA_TAGGED). At midnight goes to 0 until next upload. */
+  const totalRigCount = activeRigsQuery.data != null
+    ? activeRigsQuery.data.activeRigsToday
+    : totalRigCountFallback;
+
   const stats = statsQuery.data;
-  const isSyncing = isFeeding || statsQuery.isFetching || todayLogQuery.isFetching || recollectionsQuery.isFetching;
+  const isSyncing = isFeeding || statsQuery.isFetching || todayLogQuery.isFetching || recollectionsQuery.isFetching || activeRigsQuery.isFetching;
 
   const tickerSegments = useMemo((): TickerSegment[] => {
     const segs: TickerSegment[] = [];
@@ -562,10 +575,11 @@ export default function LiveScreen() {
     statsQuery.refetch();
     todayLogQuery.refetch();
     recollectionsQuery.refetch();
+    activeRigsQuery.refetch();
     setLiveLines([]);
     setIsFeeding(true);
     lineIndexRef.current = 0;
-  }, [statsQuery, todayLogQuery, recollectionsQuery]);
+  }, [statsQuery, todayLogQuery, recollectionsQuery, activeRigsQuery]);
 
   const handlePersonalStats = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
