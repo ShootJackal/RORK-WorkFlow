@@ -65,6 +65,7 @@ function normalizeTaskStatus(status: string): string {
   return String(status ?? "").trim().toUpperCase().replace(/[\s-]+/g, "_");
 }
 
+/** IDs must match sheet-viewer: log = Assignment Log (Collector Task Assignments Log), taskActuals = Task Actuals (Task Actuals | Redashpull). */
 const SHEET_PAGES = [
   { id: "log", label: "Assignment Log", icon: ClipboardList, desc: "View task assignment history" },
   { id: "taskActuals", label: "Task Actuals", icon: BarChart3, desc: "Collection progress by task" },

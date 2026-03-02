@@ -1,11 +1,21 @@
 /**
- * TaskFlow Google Apps Script v4.1
- * 
+ * TaskFlow Google Apps Script v4.2
+ *
  * DEPLOYMENT:
  * 1. Open your Google Sheet → Extensions → Apps Script
  * 2. Delete ALL existing code, paste this entire file
  * 3. Deploy → New Deployment → Web app → Anyone access
  * 4. Copy URL → set as EXPO_PUBLIC_GOOGLE_SCRIPT_URL
+ *
+ * REQUIRED SHEET TAB NAMES (must match your spreadsheet exactly):
+ *   Collectors
+ *   TASK_LIST
+ *   CA_TAGGED
+ *   CA_INDEX
+ *   Task Actuals | Redashpull   (or Collector Actuals | RedashPull — script tries both)
+ *   Collector Task Assignments Log
+ *   RS_Task_Req
+ *   _AppCache
  *
  * SHEET MAPPINGS:
  *   Collectors:     A=Name B=Rig-ID C=Email D=WeeklyCap E=Active F=HoursUploaded G=Rating
@@ -81,6 +91,14 @@ function getSheet(name) {
 
 function getSheetData(name) {
   return getSheet(name).getDataRange().getValues();
+}
+
+/** Task actuals data: uses "Task Actuals | Redashpull" or "Collector Actuals | RedashPull" (tries both). */
+function getTaskActualsData() {
+  var ss = getSS();
+  var sheet = ss.getSheetByName('Task Actuals | Redashpull') || ss.getSheetByName('Collector Actuals | RedashPull');
+  if (!sheet) return [];
+  return sheet.getDataRange().getValues();
 }
 
 function safeStr(v) { return String(v == null ? '' : v).trim(); }
@@ -355,7 +373,7 @@ function handleGetTodayLog(collectorName) {
 
 function handleGetRecollections() {
   var data;
-  try { data = getSheetData(SHEETS.TASK_ACTUALS); } catch(e) { return []; }
+  try { data = getTaskActualsData(); } catch(e) { return []; }
   var results = [];
   for (var i = 1; i < data.length; i++) {
     var st = safeStr(data[i][4]).toLowerCase();
@@ -387,7 +405,7 @@ function handleGetFullLog(collectorFilter) {
 
 function handleGetTaskActuals() {
   var data;
-  try { data = getSheetData(SHEETS.TASK_ACTUALS); } catch(e) { return []; }
+  try { data = getTaskActualsData(); } catch(e) { return []; }
   var results = [];
   for (var i = 1; i < data.length; i++) {
     var tn = safeStr(data[i][1]);
@@ -404,7 +422,7 @@ function handleGetTaskActuals() {
 
 function handleGetAdminDashboard() {
   var taskData;
-  try { taskData = getSheetData(SHEETS.TASK_ACTUALS); } catch(e) { taskData = []; }
+  try { taskData = getTaskActualsData(); } catch(e) { taskData = []; }
   var totalTasks = 0, completedTasks = 0, inProgressTasks = 0, recollectTasks = 0;
   var recollections = [];
   for (var i = 1; i < taskData.length; i++) {

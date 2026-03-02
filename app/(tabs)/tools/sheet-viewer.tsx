@@ -382,6 +382,13 @@ export default function SheetViewerScreen() {
         {sheetId === "taskActuals" && (
           <TaskActualsView configured={configured} />
         )}
+        {sheetId !== "log" && sheetId !== "taskActuals" && (
+          <View style={[viewStyles.center, { paddingVertical: 40 }]}>
+            <Text style={[viewStyles.emptyText, { color: colors.textMuted }]}>
+              Unknown view. Use Tools → Data Viewer to open Assignment Log or Task Actuals.
+            </Text>
+          </View>
+        )}
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
