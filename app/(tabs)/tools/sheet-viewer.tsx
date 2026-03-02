@@ -305,6 +305,15 @@ function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; col
         <Text style={[viewStyles.taskName, { color: colors.textPrimary }]} numberOfLines={2}>{task.taskName}</Text>
         <StatusBadge status={task.status} colors={colors} />
       </View>
+      {task.assignedCollector ? (
+        <View style={[viewStyles.assignedRow, { borderColor: colors.border }]}>
+          <Text style={[viewStyles.assignedLabel, { color: colors.textMuted }]}>Assigned to</Text>
+          <Text style={[viewStyles.assignedName, { color: colors.accent }]}>{task.assignedCollector}</Text>
+          {(task.collectorHours ?? 0) > 0 && (
+            <Text style={[viewStyles.assignedHours, { color: colors.complete }]}>{formatTwoDecimals(task.collectorHours ?? 0)}h logged</Text>
+          )}
+        </View>
+      ) : null}
       <View style={viewStyles.taskStats}>
         <StatChip label="Collected" value={`${formatTwoDecimals(task.collectedHours)}h`} color={colors.accent} />
         <StatChip label="Good" value={`${formatTwoDecimals(task.goodHours)}h`} color={colors.complete} />
@@ -504,6 +513,13 @@ const viewStyles = StyleSheet.create({
     borderWidth: 1,
   },
   recollectInfoText: { fontSize: 11, fontWeight: "600" as const },
+  assignedRow: {
+    flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8,
+    paddingBottom: 8, borderBottomWidth: 1,
+  },
+  assignedLabel: { fontSize: 10, fontWeight: "500" as const },
+  assignedName: { fontSize: 12, fontWeight: "700" as const },
+  assignedHours: { fontSize: 11, fontWeight: "600" as const },
 });
 
 const pageStyles = StyleSheet.create({
