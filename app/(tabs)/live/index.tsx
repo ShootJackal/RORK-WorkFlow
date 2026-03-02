@@ -387,7 +387,7 @@ export default function LiveScreen() {
     if (sheetItems && sheetItems.length > 0) return sheetItems;
     const log = todayLogQuery.data ?? todayLog;
     const fallback = log
-      .filter(e => e.status === "Partial" || e.remainingHours > 0)
+      .filter(e => e.status === "Partial" || Math.round((Number(e.remainingHours) || 0) * 100) / 100 > 0)
       .map(e => `${normalizeCollectorName(e.taskName)} (${Number(e.remainingHours).toFixed(2)}h left)`);
     return fallback.length > 0 ? fallback : [];
   }, [recollectionsQuery.data, todayLogQuery.data, todayLog]);

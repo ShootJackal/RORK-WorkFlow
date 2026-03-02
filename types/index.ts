@@ -98,6 +98,9 @@ export interface TaskActualRow {
   goodHours: number;
   remainingHours: number;
   lastRedash: string;
+  assignedCollector?: string;
+  collectorHours?: number;
+  collectorCount?: number;
 }
 
 export interface FullLogEntry {

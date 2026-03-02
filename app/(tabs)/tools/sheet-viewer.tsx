@@ -173,7 +173,7 @@ function AssignmentLogView({ collectorName, configured }: { collectorName: strin
             <Text style={[viewStyles.metaText, { color: colors.textSecondary }]}>
               {Number(entry.loggedHours).toFixed(2)}h / {Number(entry.plannedHours).toFixed(2)}h
             </Text>
-            {entry.remainingHours > 0 && (
+            {Math.round((Number(entry.remainingHours) || 0) * 100) / 100 > 0 && (
               <Text style={[viewStyles.metaText, { color: colors.statusPending }]}>
                 {Number(entry.remainingHours).toFixed(2)}h left
               </Text>
@@ -295,9 +295,9 @@ function TaskActualsView({ configured }: { configured: boolean }) {
 
 function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; colors: any; showRecollectTime?: boolean }) {
   const isRecollect = task.status.toUpperCase() === "RECOLLECT";
-  const remaining = Number(task.remainingHours) || 0;
+  const remaining = Math.round((Number(task.remainingHours) || 0) * 100) / 100;
   const recollectNeeded = isRecollect && remaining > 0 ? remaining : 0;
-  const goodGap = isRecollect ? Math.max((Number(task.collectedHours) || 0) - (Number(task.goodHours) || 0), 0) : 0;
+  const goodGap = isRecollect ? Math.round(Math.max((Number(task.collectedHours) || 0) - (Number(task.goodHours) || 0), 0) * 100) / 100 : 0;
 
   return (
     <View style={[viewStyles.taskCard, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>
@@ -305,6 +305,18 @@ function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; col
         <Text style={[viewStyles.taskName, { color: colors.textPrimary }]} numberOfLines={2}>{task.taskName}</Text>
         <StatusBadge status={task.status} colors={colors} />
       </View>
+      {task.assignedCollector ? (
+        <View style={[viewStyles.assignedRow, { borderColor: colors.border }]}>
+          <Text style={[viewStyles.assignedLabel, { color: colors.textMuted }]}>Top collector</Text>
+          <Text style={[viewStyles.assignedName, { color: colors.accent }]}>{task.assignedCollector}</Text>
+          {(task.collectorHours ?? 0) > 0 && (
+            <Text style={[viewStyles.assignedHours, { color: colors.complete }]}>{formatTwoDecimals(task.collectorHours ?? 0)}h</Text>
+          )}
+          {(task.collectorCount ?? 0) > 1 && (
+            <Text style={[viewStyles.assignedLabel, { color: colors.textMuted }]}>+{(task.collectorCount ?? 1) - 1} more</Text>
+          )}
+        </View>
+      ) : null}
       <View style={viewStyles.taskStats}>
         <StatChip label="Collected" value={`${formatTwoDecimals(task.collectedHours)}h`} color={colors.accent} />
         <StatChip label="Good" value={`${formatTwoDecimals(task.goodHours)}h`} color={colors.complete} />
@@ -504,6 +516,13 @@ const viewStyles = StyleSheet.create({
     borderWidth: 1,
   },
   recollectInfoText: { fontSize: 11, fontWeight: "600" as const },
+  assignedRow: {
+    flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8,
+    paddingBottom: 8, borderBottomWidth: 1,
+  },
+  assignedLabel: { fontSize: 10, fontWeight: "500" as const },
+  assignedName: { fontSize: 12, fontWeight: "700" as const },
+  assignedHours: { fontSize: 11, fontWeight: "600" as const },
 });
 
 const pageStyles = StyleSheet.create({

@@ -253,13 +253,15 @@ function handleGetLeaderboard(period) {
   for (var k in map) {
     var en = map[k];
     if (en.hoursLogged <= 0 && en.tasksAssigned <= 0) continue;
+    en.hoursLogged = Math.round(en.hoursLogged * 100) / 100;
     en.completionRate = en.tasksAssigned > 0 ? Math.round(en.tasksCompleted / en.tasksAssigned * 100) : 0;
     entries.push(en);
   }
   entries.sort(function(a, b) { return b.hoursLogged - a.hoursLogged; });
   for (var idx = 0; idx < entries.length; idx++) entries[idx].rank = idx + 1;
 
-  writeCache('leaderboard', entries);
+  var cacheKey = useWeekly ? ('leaderboard_' + period) : 'leaderboard';
+  writeCache(cacheKey, entries);
   return entries;
 }
 
@@ -306,7 +308,7 @@ function handleGetCollectorStats(collectorName) {
       weeklyLoggedHours += logged;
       if (st === 'completed' || st === 'complete') weeklyCompleted++;
     }
-    topTasks.push({ name: safeStr(row[2]), hours: logged, status: safeStr(row[6]) });
+    topTasks.push({ name: safeStr(row[2]), hours: Math.round(logged * 100) / 100, status: safeStr(row[6]) });
   }
 
   var taggedData;
@@ -362,8 +364,8 @@ function handleGetTodayLog(collectorName) {
     if (dateStr === todayStr || isActive) {
       results.push({
         assignmentId: safeStr(row[0]), taskId: safeStr(row[1]), taskName: safeStr(row[2]),
-        status: status, loggedHours: safeNum(row[7]), plannedHours: safeNum(row[5]),
-        remainingHours: safeNum(row[8]), notes: safeStr(row[10]),
+        status: status, loggedHours: Math.round(safeNum(row[7]) * 100) / 100, plannedHours: Math.round(safeNum(row[5]) * 100) / 100,
+        remainingHours: Math.round(safeNum(row[8]) * 100) / 100, notes: safeStr(row[10]),
         assignedDate: dateStr, completedDate: safeStr(row[9])
       });
     }
@@ -380,7 +382,7 @@ function handleGetRecollections() {
     var tn = safeStr(data[i][1]);
     var rem = safeNum(data[i][5]);
     if (tn && (st === 'recollect' || st === 'needs recollection' || rem < 0)) {
-      results.push(tn + (rem !== 0 ? ' (' + rem + 'h)' : ''));
+      results.push(tn + (rem !== 0 ? ' (' + (Math.round(rem * 100) / 100).toFixed(2) + 'h)' : ''));
     }
   }
   return results;
@@ -396,8 +398,8 @@ function handleGetFullLog(collectorFilter) {
     if (normFilter && collector.toLowerCase().replace(/\s+/g, ' ') !== normFilter) continue;
     results.push({
       collector: collector, taskName: safeStr(data[i][2]), status: safeStr(data[i][6]),
-      loggedHours: safeNum(data[i][7]), plannedHours: safeNum(data[i][5]),
-      remainingHours: safeNum(data[i][8]), assignedDate: safeStr(data[i][4])
+      loggedHours: Math.round(safeNum(data[i][7]) * 100) / 100, plannedHours: Math.round(safeNum(data[i][5]) * 100) / 100,
+      remainingHours: Math.round(safeNum(data[i][8]) * 100) / 100, assignedDate: safeStr(data[i][4])
     });
   }
   return results;
@@ -406,15 +408,58 @@ function handleGetFullLog(collectorFilter) {
 function handleGetTaskActuals() {
   var data;
   try { data = getTaskActualsData(); } catch(e) { return []; }
+
+  // Build collector data from CA_TAGGED (actual upload data: who collected what and how many hours)
+  // CA_TAGGED: A=Date B=RigID C=Site D=Collector E=TaskName F=Hours
+  var taggedData;
+  try { taggedData = getSheetData(SHEETS.CA_TAGGED); } catch(e) { taggedData = []; }
+
+  // Map: taskName (lower) -> { collectors: { name -> totalHours }, totalUploaded }
+  var taskCollectorMap = {};
+  for (var t = 1; t < taggedData.length; t++) {
+    var tTask = safeStr(taggedData[t][4]).toLowerCase().replace(/[_\s]+/g, ' ');
+    var tCollector = safeStr(taggedData[t][3]);
+    var tHours = safeNum(taggedData[t][5]);
+    if (!tTask || !tCollector) continue;
+    if (!taskCollectorMap[tTask]) taskCollectorMap[tTask] = { collectors: {}, totalUploaded: 0 };
+    var cKey = tCollector.toLowerCase().replace(/\s+/g, ' ');
+    if (!taskCollectorMap[tTask].collectors[cKey]) {
+      taskCollectorMap[tTask].collectors[cKey] = { name: tCollector, hours: 0 };
+    }
+    taskCollectorMap[tTask].collectors[cKey].hours += tHours;
+    taskCollectorMap[tTask].totalUploaded += tHours;
+  }
+
   var results = [];
   for (var i = 1; i < data.length; i++) {
     var tn = safeStr(data[i][1]);
     if (!tn) continue;
+    var tnKey = tn.toLowerCase().replace(/[_\s]+/g, ' ');
+    var tcData = taskCollectorMap[tnKey];
+
+    // Find the top contributor (collector with most hours on this task)
+    var topCollector = '';
+    var topHours = 0;
+    var collectorCount = 0;
+    if (tcData) {
+      for (var ck in tcData.collectors) {
+        collectorCount++;
+        var c = tcData.collectors[ck];
+        if (c.hours > topHours) {
+          topHours = c.hours;
+          topCollector = c.name;
+        }
+      }
+    }
+
     results.push({
       taskId: safeStr(data[i][0]), taskName: tn,
-      collectedHours: safeNum(data[i][2]), goodHours: safeNum(data[i][3]),
-      status: safeStr(data[i][4]), remainingHours: safeNum(data[i][5]),
-      lastRedash: safeStr(data[i][10])
+      collectedHours: Math.round(safeNum(data[i][2]) * 100) / 100, goodHours: Math.round(safeNum(data[i][3]) * 100) / 100,
+      status: safeStr(data[i][4]), remainingHours: Math.round(safeNum(data[i][5]) * 100) / 100,
+      lastRedash: safeStr(data[i][10]),
+      assignedCollector: topCollector,
+      collectorHours: Math.round(topHours * 100) / 100,
+      collectorCount: collectorCount
     });
   }
   return results;

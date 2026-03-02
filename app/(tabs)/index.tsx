@@ -58,7 +58,7 @@ const LogEntryRow = React.memo(function LogEntryRow({ entry, statusColor, colors
             <Text style={[logStyles.hours, { color: colors.textMuted }]}>
               {Number(entry.loggedHours).toFixed(2)}h / {Number(entry.plannedHours).toFixed(2)}h
             </Text>
-            {entry.remainingHours > 0 && (
+            {Math.round((Number(entry.remainingHours) || 0) * 100) / 100 > 0 && (
               <Text style={[logStyles.remaining, { color: colors.statusPending }]}>
                 {Number(entry.remainingHours).toFixed(2)}h left
               </Text>
