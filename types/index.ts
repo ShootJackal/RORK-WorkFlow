@@ -100,6 +100,7 @@ export interface TaskActualRow {
   lastRedash: string;
   assignedCollector?: string;
   collectorHours?: number;
+  collectorCount?: number;
 }
 
 export interface FullLogEntry {

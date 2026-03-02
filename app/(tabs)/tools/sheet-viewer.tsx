@@ -307,10 +307,13 @@ function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; col
       </View>
       {task.assignedCollector ? (
         <View style={[viewStyles.assignedRow, { borderColor: colors.border }]}>
-          <Text style={[viewStyles.assignedLabel, { color: colors.textMuted }]}>Assigned to</Text>
+          <Text style={[viewStyles.assignedLabel, { color: colors.textMuted }]}>Top collector</Text>
           <Text style={[viewStyles.assignedName, { color: colors.accent }]}>{task.assignedCollector}</Text>
           {(task.collectorHours ?? 0) > 0 && (
-            <Text style={[viewStyles.assignedHours, { color: colors.complete }]}>{formatTwoDecimals(task.collectorHours ?? 0)}h logged</Text>
+            <Text style={[viewStyles.assignedHours, { color: colors.complete }]}>{formatTwoDecimals(task.collectorHours ?? 0)}h</Text>
+          )}
+          {(task.collectorCount ?? 0) > 1 && (
+            <Text style={[viewStyles.assignedLabel, { color: colors.textMuted }]}>+{(task.collectorCount ?? 1) - 1} more</Text>
           )}
         </View>
       ) : null}

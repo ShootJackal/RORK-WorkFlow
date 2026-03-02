@@ -409,41 +409,47 @@ function handleGetTaskActuals() {
   var data;
   try { data = getTaskActualsData(); } catch(e) { return []; }
 
-  // Build a map of task -> assigned collectors + their logged hours from the Assignments Log
-  var assignMap = {}; // taskName (lower) -> [{ collector, hours, status }]
-  try {
-    var assignData = getSheetData(SHEETS.ASSIGNMENTS);
-    for (var a = 1; a < assignData.length; a++) {
-      var aTask = safeStr(assignData[a][2]).toLowerCase().replace(/[_\s]+/g, ' ');
-      var aCollector = safeStr(assignData[a][3]);
-      var aHours = Math.round(safeNum(assignData[a][7]) * 100) / 100;
-      var aStatus = safeStr(assignData[a][6]);
-      if (!aTask || !aCollector) continue;
-      if (!assignMap[aTask]) assignMap[aTask] = [];
-      assignMap[aTask].push({ collector: aCollector, hours: aHours, status: aStatus });
+  // Build collector data from CA_TAGGED (actual upload data: who collected what and how many hours)
+  // CA_TAGGED: A=Date B=RigID C=Site D=Collector E=TaskName F=Hours
+  var taggedData;
+  try { taggedData = getSheetData(SHEETS.CA_TAGGED); } catch(e) { taggedData = []; }
+
+  // Map: taskName (lower) -> { collectors: { name -> totalHours }, totalUploaded }
+  var taskCollectorMap = {};
+  for (var t = 1; t < taggedData.length; t++) {
+    var tTask = safeStr(taggedData[t][4]).toLowerCase().replace(/[_\s]+/g, ' ');
+    var tCollector = safeStr(taggedData[t][3]);
+    var tHours = safeNum(taggedData[t][5]);
+    if (!tTask || !tCollector) continue;
+    if (!taskCollectorMap[tTask]) taskCollectorMap[tTask] = { collectors: {}, totalUploaded: 0 };
+    var cKey = tCollector.toLowerCase().replace(/\s+/g, ' ');
+    if (!taskCollectorMap[tTask].collectors[cKey]) {
+      taskCollectorMap[tTask].collectors[cKey] = { name: tCollector, hours: 0 };
     }
-  } catch(e) {}
+    taskCollectorMap[tTask].collectors[cKey].hours += tHours;
+    taskCollectorMap[tTask].totalUploaded += tHours;
+  }
 
   var results = [];
   for (var i = 1; i < data.length; i++) {
     var tn = safeStr(data[i][1]);
     if (!tn) continue;
     var tnKey = tn.toLowerCase().replace(/[_\s]+/g, ' ');
-    var assignments = assignMap[tnKey] || [];
-    // Find active assignment (most recent In Progress/Partial), or last collector who worked on it
-    var assignedCollector = '';
-    var collectorHours = 0;
-    for (var j = assignments.length - 1; j >= 0; j--) {
-      var ast = assignments[j].status.toLowerCase();
-      if (ast === 'in progress' || ast === 'partial') {
-        assignedCollector = assignments[j].collector;
-        collectorHours = assignments[j].hours;
-        break;
+    var tcData = taskCollectorMap[tnKey];
+
+    // Find the top contributor (collector with most hours on this task)
+    var topCollector = '';
+    var topHours = 0;
+    var collectorCount = 0;
+    if (tcData) {
+      for (var ck in tcData.collectors) {
+        collectorCount++;
+        var c = tcData.collectors[ck];
+        if (c.hours > topHours) {
+          topHours = c.hours;
+          topCollector = c.name;
+        }
       }
-    }
-    if (!assignedCollector && assignments.length > 0) {
-      assignedCollector = assignments[assignments.length - 1].collector;
-      collectorHours = assignments[assignments.length - 1].hours;
     }
 
     results.push({
@@ -451,8 +457,9 @@ function handleGetTaskActuals() {
       collectedHours: Math.round(safeNum(data[i][2]) * 100) / 100, goodHours: Math.round(safeNum(data[i][3]) * 100) / 100,
       status: safeStr(data[i][4]), remainingHours: Math.round(safeNum(data[i][5]) * 100) / 100,
       lastRedash: safeStr(data[i][10]),
-      assignedCollector: assignedCollector,
-      collectorHours: collectorHours
+      assignedCollector: topCollector,
+      collectorHours: Math.round(topHours * 100) / 100,
+      collectorCount: collectorCount
     });
   }
   return results;
