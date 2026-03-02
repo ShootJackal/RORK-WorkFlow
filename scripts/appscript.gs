@@ -1,5 +1,5 @@
 /**
- * TaskFlow Google Apps Script v4.0
+ * TaskFlow Google Apps Script v4.1
  * 
  * DEPLOYMENT:
  * 1. Open your Google Sheet → Extensions → Apps Script
@@ -32,11 +32,12 @@ var SHEETS = {
 function doGet(e) {
   try {
     var action = (e.parameter.action || '').trim();
+    var period = (e.parameter.period || '').trim();
     var result;
     switch (action) {
       case 'getCollectors':         result = handleGetCollectors(); break;
       case 'getTasks':              result = handleGetTasks(); break;
-      case 'getLeaderboard':        result = handleGetLeaderboard(); break;
+      case 'getLeaderboard':        result = handleGetLeaderboard(period); break;
       case 'getCollectorStats':     result = handleGetCollectorStats(e.parameter.collector || ''); break;
       case 'getTodayLog':           result = handleGetTodayLog(e.parameter.collector || ''); break;
       case 'getRecollections':      result = handleGetRecollections(); break;
@@ -85,6 +86,14 @@ function getSheetData(name) {
 function safeStr(v) { return String(v == null ? '' : v).trim(); }
 function safeNum(v) { var n = Number(v); return isFinite(n) ? n : 0; }
 
+/** Normalize cell value to a Date (for comparison). Returns null if invalid. */
+function toDateSafe(cell) {
+  if (cell instanceof Date) return new Date(cell.getFullYear(), cell.getMonth(), cell.getDate());
+  if (cell == null || cell === '') return null;
+  var d = new Date(cell);
+  return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
 function handleGetCollectors() {
   var data = getSheetData(SHEETS.COLLECTORS);
   var results = [];
@@ -116,7 +125,32 @@ function handleGetTasks() {
   return results;
 }
 
-function handleGetLeaderboard() {
+function getWeekRange(period) {
+  // Returns { start: Date, end: Date } for "thisWeek" or "lastWeek" (Mon–Sun).
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var day = today.getDay(); // 0 = Sun, 1 = Mon, ...
+  var mondayOffset = day === 0 ? -6 : 1 - day; // shift to Monday
+  var thisMonday = new Date(today);
+  thisMonday.setDate(thisMonday.getDate() + mondayOffset);
+  var thisSunday = new Date(thisMonday);
+  thisSunday.setDate(thisSunday.getDate() + 6);
+
+  if (period === 'lastWeek') {
+    var lastMonday = new Date(thisMonday);
+    lastMonday.setDate(lastMonday.getDate() - 7);
+    var lastSunday = new Date(lastMonday);
+    lastSunday.setDate(lastSunday.getDate() + 6);
+    return { start: lastMonday, end: lastSunday };
+  }
+
+  // Default to this week.
+  return { start: thisMonday, end: thisSunday };
+}
+
+function handleGetLeaderboard(period) {
+  var useWeekly = (period === 'thisWeek' || period === 'lastWeek');
+  var weekRange = useWeekly ? getWeekRange(period) : null;
   var collectorsData = getSheetData(SHEETS.COLLECTORS);
   var rigToName = {};
   var rigToRegion = {};
@@ -163,6 +197,13 @@ function handleGetLeaderboard() {
     var collector = safeStr(aRow[3]);
     if (!collector) continue;
     var key = collector.toLowerCase().replace(/\s+/g, ' ');
+
+    // For weekly views, only include assignments whose AssignedDate falls in the requested week.
+    if (useWeekly) {
+      var d = toDateSafe(aRow[4]);
+      if (!d || d < weekRange.start || d > weekRange.end) continue;
+    }
+
     var hours = safeNum(aRow[7]);
     var status = safeStr(aRow[6]).toLowerCase();
     var isCompleted = (status === 'completed' || status === 'complete');
@@ -176,14 +217,17 @@ function handleGetLeaderboard() {
     if (isCompleted) map[key].tasksCompleted += 1;
   }
 
-  for (var ck in collectorMeta) {
-    var meta = collectorMeta[ck];
-    if (map[ck]) {
-      if (meta.hoursUploaded > map[ck].hoursLogged) {
-        map[ck].hoursLogged = meta.hoursUploaded;
+  // For all‑time view (older clients), keep the fallback that uses collectors.hoursUploaded.
+  if (!useWeekly) {
+    for (var ck in collectorMeta) {
+      var meta = collectorMeta[ck];
+      if (map[ck]) {
+        if (meta.hoursUploaded > map[ck].hoursLogged) {
+          map[ck].hoursLogged = meta.hoursUploaded;
+        }
+      } else if (meta.hoursUploaded > 0) {
+        map[ck] = { rank: 0, collectorName: meta.name, hoursLogged: meta.hoursUploaded, tasksCompleted: 0, tasksAssigned: 0, completionRate: 0, region: meta.region };
       }
-    } else if (meta.hoursUploaded > 0) {
-      map[ck] = { rank: 0, collectorName: meta.name, hoursLogged: meta.hoursUploaded, tasksCompleted: 0, tasksAssigned: 0, completionRate: 0, region: meta.region };
     }
   }
 
@@ -239,8 +283,8 @@ function handleGetCollectorStats(collectorName) {
     totalPlannedHours += planned;
     if (st === 'completed' || st === 'complete') totalCompleted++;
     else if (st === 'canceled' || st === 'cancelled') totalCanceled++;
-    var assignDate = row[4];
-    if (assignDate instanceof Date && assignDate >= weekStart) {
+    var assignDate = toDateSafe(row[4]);
+    if (assignDate && assignDate >= weekStart) {
       weeklyLoggedHours += logged;
       if (st === 'completed' || st === 'complete') weeklyCompleted++;
     }

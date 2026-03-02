@@ -433,7 +433,7 @@ export default function LiveScreen() {
     const statsItems: string[] = [];
     if (stats) {
       statsItems.push(`Completion: ${stats.completionRate.toFixed(0)}%`);
-      statsItems.push(`Hours: ${stats.totalLoggedHours.toFixed(2)}h`);
+      statsItems.push(`Hours (this week): ${stats.weeklyLoggedHours.toFixed(2)}h`);
       statsItems.push(`Done: ${stats.totalCompleted}`);
       if (stats.topTasks?.length) {
         stats.topTasks.slice(0, 5).forEach((t, i) => {
@@ -467,7 +467,7 @@ export default function LiveScreen() {
     lines.push({ id: `mx_r_${ts}`, text: `Active Rigs:        ${mxRigs}`, type: "data", color: colors.textPrimary });
     if (stats) {
       lines.push({ id: `mx_t_${ts}`, text: `Tasks Logged:       ${stats.totalAssigned}`, type: "data", color: colors.mxOrange });
-      lines.push({ id: `mx_h2_${ts}`, text: `Hours Captured:     ${stats.totalLoggedHours.toFixed(2)}h`, type: "data", color: colors.mxOrange });
+      lines.push({ id: `mx_h2_${ts}`, text: `Hours Captured (wk): ${stats.weeklyLoggedHours.toFixed(2)}h`, type: "data", color: colors.mxOrange });
       lines.push({ id: `mx_r2_${ts}`, text: `Completion Rate:    ${stats.completionRate.toFixed(1)}%`, type: "data", color: colors.terminalGreen });
     } else {
       lines.push({ id: `mx_w_${ts}`, text: "Awaiting data feed...", type: "label" });
@@ -480,7 +480,7 @@ export default function LiveScreen() {
     lines.push({ id: `sf_r_${ts}`, text: `Active Rigs:        ${sfRigs}`, type: "data", color: colors.textPrimary });
     if (stats) {
       const sfTasks = Math.max(Math.round(stats.totalAssigned * 0.4), 1);
-      const sfHrs = (stats.totalLoggedHours * 0.35).toFixed(2);
+      const sfHrs = (stats.weeklyLoggedHours * 0.35).toFixed(2);
       const sfRate = Math.min(stats.completionRate + 5, 100);
       lines.push({ id: `sf_t_${ts}`, text: `Tasks Logged:       ${sfTasks}`, type: "data", color: colors.sfBlue });
       lines.push({ id: `sf_h2_${ts}`, text: `Hours Captured:     ${sfHrs}h`, type: "data", color: colors.sfBlue });
@@ -590,7 +590,7 @@ export default function LiveScreen() {
       { id: `ps_h_${ts}`, text: `PERSONAL STATS: ${normalizeCollectorName(selectedCollectorName)}`, type: "header" },
       { id: `ps_1_${ts}`, text: `Total Assigned:     ${stats.totalAssigned}`, type: "data", color: colors.textPrimary },
       { id: `ps_2_${ts}`, text: `Total Completed:    ${stats.totalCompleted}`, type: "data", color: colors.terminalGreen },
-      { id: `ps_3_${ts}`, text: `Hours Logged:       ${stats.totalLoggedHours.toFixed(2)}h`, type: "data", color: colors.accentLight },
+      { id: `ps_3_${ts}`, text: `Hours Logged (wk):  ${stats.weeklyLoggedHours.toFixed(2)}h`, type: "data", color: colors.accentLight },
       { id: `ps_4_${ts}`, text: `Completion Rate:    ${stats.completionRate.toFixed(0)}%`, type: "data", color: colors.terminalGreen },
       { id: `ps_5_${ts}`, text: `Weekly Hours:       ${stats.weeklyLoggedHours.toFixed(2)}h`, type: "data", color: colors.accent },
       { id: `ps_d_${ts}`, text: "\u2500".repeat(44), type: "divider" },
