@@ -173,7 +173,7 @@ function AssignmentLogView({ collectorName, configured }: { collectorName: strin
             <Text style={[viewStyles.metaText, { color: colors.textSecondary }]}>
               {Number(entry.loggedHours).toFixed(2)}h / {Number(entry.plannedHours).toFixed(2)}h
             </Text>
-            {entry.remainingHours > 0 && (
+            {Math.round((Number(entry.remainingHours) || 0) * 100) / 100 > 0 && (
               <Text style={[viewStyles.metaText, { color: colors.statusPending }]}>
                 {Number(entry.remainingHours).toFixed(2)}h left
               </Text>
@@ -295,9 +295,9 @@ function TaskActualsView({ configured }: { configured: boolean }) {
 
 function TaskRow({ task, colors, showRecollectTime }: { task: TaskActualRow; colors: any; showRecollectTime?: boolean }) {
   const isRecollect = task.status.toUpperCase() === "RECOLLECT";
-  const remaining = Number(task.remainingHours) || 0;
+  const remaining = Math.round((Number(task.remainingHours) || 0) * 100) / 100;
   const recollectNeeded = isRecollect && remaining > 0 ? remaining : 0;
-  const goodGap = isRecollect ? Math.max((Number(task.collectedHours) || 0) - (Number(task.goodHours) || 0), 0) : 0;
+  const goodGap = isRecollect ? Math.round(Math.max((Number(task.collectedHours) || 0) - (Number(task.goodHours) || 0), 0) * 100) / 100 : 0;
 
   return (
     <View style={[viewStyles.taskCard, { backgroundColor: colors.bgCard, borderColor: colors.border, shadowColor: colors.shadow }]}>
